@@ -37,6 +37,17 @@
             </Setter>
         </Style>
 
+        <!-- 상세 카드 편집용 텍스트 상자. 읽기용 TextBlock과 같은 자리에 겹쳐 두고 전환 -->
+        <Style x:Key="DetailEditBox" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="-2,0,0,0"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Setter Property="FontFamily" Value="{DynamicResource NoteFont}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource NoteTitleBrush}"/>
+        </Style>
+
         <!-- 연한 회색 버튼 -->
         <Style x:Key="SoftButton" TargetType="Button">
             <Setter Property="Margin" Value="6,0,0,0"/>
@@ -268,26 +279,59 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
+                            <!-- 제목: 클릭하면 편집. 읽기용과 편집용을 겹쳐 두고 전환 -->
                             <Grid Grid.Row="0" Margin="0,0,0,14">
-                                <TextBlock Text="{Binding Title}" FontSize="{DynamicResource DetailTitleSize}" FontWeight="SemiBold"
-                                           Foreground="{StaticResource NoteTitleBrush}" TextTrimming="CharacterEllipsis"
-                                           Margin="0,0,120,0"/>
+                                <Grid Margin="0,0,120,0">
+                                    <TextBlock x:Name="DetailTitle" Text="{Binding Title}" FontSize="{DynamicResource DetailTitleSize}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource NoteTitleBrush}" TextTrimming="CharacterEllipsis"
+                                               Cursor="IBeam" ToolTip="클릭하여 편집"
+                                               MouseLeftButtonUp="DetailTitle_MouseLeftButtonUp"/>
+                                    <TextBox x:Name="DetailTitleBox" Style="{StaticResource DetailEditBox}"
+                                             FontSize="{DynamicResource DetailTitleSize}" FontWeight="SemiBold"
+                                             Foreground="{StaticResource NoteTitleBrush}"
+                                             KeyDown="DetailTitleBox_KeyDown"/>
+                                </Grid>
                                 <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
                                            Foreground="{StaticResource NoteLabelBrush}"
                                            Text="{Binding UpdatedAt, StringFormat='수정 {0:MM.dd HH:mm}'}"/>
                             </Grid>
 
-                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                                <TextBlock Text="{Binding Body}" FontSize="{DynamicResource DetailBodySize}" LineHeight="{DynamicResource DetailBodyLineHeight}"
-                                           Foreground="{StaticResource NoteBodyBrush}" TextWrapping="Wrap"/>
-                            </ScrollViewer>
+                            <!-- 본문: 빈 영역을 눌러도 편집에 들어가도록 투명 배경으로 히트 테스트 -->
+                            <Grid Grid.Row="1" Background="Transparent" MouseLeftButtonUp="DetailBody_MouseLeftButtonUp">
+                                <ScrollViewer x:Name="DetailBodyScroll" VerticalScrollBarVisibility="Auto">
+                                    <TextBlock x:Name="DetailBody" Text="{Binding Body}" FontSize="{DynamicResource DetailBodySize}" LineHeight="{DynamicResource DetailBodyLineHeight}"
+                                               Foreground="{StaticResource NoteBodyBrush}" TextWrapping="Wrap"
+                                               Cursor="IBeam" ToolTip="클릭하여 편집"/>
+                                </ScrollViewer>
+                                <TextBox x:Name="DetailBodyBox" Style="{StaticResource DetailEditBox}"
+                                         FontSize="{DynamicResource DetailBodySize}"
+                                         Foreground="{StaticResource NoteBodyBrush}"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         KeyDown="DetailBodyBox_KeyDown"/>
+                            </Grid>
 
+                            <!-- 하단: 색상 선택 점, 생성/수정 시각, 편집 중에는 저장/취소 -->
                             <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="#33000000" Margin="0,16,0,0" Padding="0,10,0,0">
-                                <TextBlock FontSize="12" Foreground="{StaticResource NoteLabelBrush}">
-                                    <Run Text="{Binding CreatedAt, StringFormat='생성 {0:yyyy-MM-dd HH:mm}', Mode=OneWay}"/>
-                                    <Run Text=" · "/>
-                                    <Run Text="{Binding UpdatedAt, Converter={StaticResource RelativeTime}, StringFormat='수정 {0}', Mode=OneWay}"/>
-                                </TextBlock>
+                                <Grid>
+                                    <StackPanel x:Name="DetailColorRow" Orientation="Horizontal" VerticalAlignment="Center"
+                                                ToolTip="메모지 색상"/>
+
+                                    <TextBlock x:Name="DetailTimes" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               FontSize="12" Foreground="{StaticResource NoteLabelBrush}">
+                                        <Run Text="{Binding CreatedAt, StringFormat='생성 {0:yyyy-MM-dd HH:mm}', Mode=OneWay}"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding UpdatedAt, Converter={StaticResource RelativeTime}, StringFormat='수정 {0}', Mode=OneWay}"/>
+                                    </TextBlock>
+
+                                    <StackPanel x:Name="DetailEditActions" Orientation="Horizontal" HorizontalAlignment="Right"
+                                                VerticalAlignment="Center" Visibility="Collapsed">
+                                        <TextBlock Text="Esc 취소 · Ctrl+Enter 저장" FontSize="11" VerticalAlignment="Center"
+                                                   Foreground="{StaticResource NoteLabelBrush}" Margin="0,0,6,0"/>
+                                        <Button Content="취소" Style="{StaticResource SoftButton}" Click="DetailCancel_Click"/>
+                                        <Button Content="저장" Style="{StaticResource SoftButton}" FontWeight="SemiBold" Click="DetailSave_Click"/>
+                                    </StackPanel>
+                                </Grid>
                             </Border>
                         </Grid>
                     </Border>

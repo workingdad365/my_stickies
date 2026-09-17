@@ -16,6 +16,7 @@
         <ContextMenu>
             <MenuItem Header="메모 관리" Click="AllNotes_Click"/>
             <MenuItem Header="설정" Click="Settings_Click"/>
+            <MenuItem x:Name="ToggleVisibilityItem" Header="감추기" Click="ToggleVisibility_Click"/>
             <Separator/>
             <MenuItem Header="종료" Click="Exit_Click"/>
         </ContextMenu>

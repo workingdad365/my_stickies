@@ -3,18 +3,32 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Media;
+using Ellipse = System.Windows.Shapes.Ellipse;
+using System.Windows.Threading;
 using Microsoft.Win32;
+using MyStickies.Converters;
 using MyStickies.Data;
 using MyStickies.Models;
 
 namespace MyStickies.Windows;
 
-/// <summary>메모 관리 창. 검색, 전체/활성/숨김 필터, 미리보기, 숨김/복원/삭제</summary>
+/// <summary>메모 관리 창. 검색, 전체/활성/숨김 필터, 상세 보기와 편집, 색상 변경, 숨김/복원/삭제</summary>
 public partial class AllNotesWindow : Window
 {
+    private static readonly SolidColorBrush SelectedRing = HexToBrushConverter.Brush("#8A3A3A48");
+
+    /// <summary>선택되지 않은 색상 점의 테두리. 메모지와 같은 색인 점도 보이도록 옅은 흰색</summary>
+    private static readonly SolidColorBrush IdleRing = HexToBrushConverter.Brush("#B0FFFFFF");
+
     private readonly NoteStore _store;
     private readonly ICollectionView _view;
     private string _filter = "all";
+
+    /// <summary>상세 카드에서 편집 중인 노트. 선택이 바뀌거나 창이 닫히면 저장하고 종료</summary>
+    private Note? _editing;
+    private bool _refreshing;
 
     public AllNotesWindow(NoteStore store)
     {
@@ -31,12 +45,160 @@ public partial class AllNotesWindow : Window
         _store.Notes.CollectionChanged += OnNotesCollectionChanged;
         Closed += (_, _) =>
         {
+            EndDetailEdit(save: true);
             _store.NoteChanged -= OnNoteChanged;
             _store.Notes.CollectionChanged -= OnNotesCollectionChanged;
         };
 
+        BuildColorDots();
+        NoteList.SelectionChanged += (_, _) =>
+        {
+            // 목록 재정렬 중 일시적인 선택 변경은 편집을 끊지 않음
+            if (!_refreshing) EndDetailEdit(save: true);
+            RefreshColorSelection();
+        };
+
         UpdateCount();
     }
+
+    /// <summary>팔레트 색상별 선택 점 생성. 클릭 시 색상을 바꾸고 바로 저장</summary>
+    private void BuildColorDots()
+    {
+        foreach (var hex in NotePalette.All)
+        {
+            var dot = new Ellipse
+            {
+                Width = 16,
+                Height = 16,
+                Margin = new Thickness(0, 0, 8, 0),
+                Fill = HexToBrushConverter.Brush(hex),
+                Stroke = IdleRing,
+                StrokeThickness = 2,
+                Cursor = Cursors.Hand,
+                Tag = hex,
+            };
+            dot.MouseLeftButtonUp += (_, e) =>
+            {
+                e.Handled = true;
+                if (NoteList.SelectedItem is not Note note || note.ColorHex == hex) return;
+                note.ColorHex = hex;
+                note.UpdatedAt = DateTime.Now;
+                _store.Save(note);
+                RefreshColorSelection();
+            };
+            DetailColorRow.Children.Add(dot);
+        }
+    }
+
+    /// <summary>선택한 노트의 색상에 해당하는 점에 테두리 표시</summary>
+    private void RefreshColorSelection()
+    {
+        var current = (NoteList.SelectedItem as Note)?.ColorHex;
+        foreach (var child in DetailColorRow.Children)
+        {
+            if (child is not Ellipse dot) continue;
+            dot.Stroke = (string?)dot.Tag == current ? SelectedRing : IdleRing;
+        }
+    }
+
+    /// <summary>상세 카드 편집 시작. focusTitle이 true면 제목칸, 아니면 본문칸에 커서</summary>
+    private void BeginDetailEdit(bool focusTitle)
+    {
+        if (_editing is not null || NoteList.SelectedItem is not Note note) return;
+        _editing = note;
+
+        DetailTitleBox.Text = note.Title;
+        DetailBodyBox.Text = note.Body;
+        ShowDetailEditors(true);
+
+        var target = focusTitle ? DetailTitleBox : DetailBodyBox;
+        Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+        {
+            Keyboard.Focus(target);
+            target.CaretIndex = target.Text.Length;
+        });
+    }
+
+    /// <summary>상세 카드 편집 종료. save가 true면 입력 내용을 저장하고, 제목이 비었으면 기본 제목 적용</summary>
+    private void EndDetailEdit(bool save)
+    {
+        if (_editing is null) return;
+        var note = _editing;
+        _editing = null;
+
+        if (save)
+        {
+            var now = DateTime.Now;
+            note.Title = DetailTitleBox.Text.Trim();
+            note.Body = DetailBodyBox.Text;
+            note.EnsureTitle(now);
+            note.UpdatedAt = now;
+            _store.Save(note);
+        }
+
+        ShowDetailEditors(false);
+    }
+
+    private void ShowDetailEditors(bool editing)
+    {
+        DetailTitle.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
+        DetailBodyScroll.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
+        DetailTitleBox.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
+        DetailBodyBox.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
+        DetailTimes.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
+        DetailEditActions.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void DetailTitle_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        BeginDetailEdit(focusTitle: true);
+    }
+
+    private void DetailBody_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_editing is not null) return;
+        e.Handled = true;
+        BeginDetailEdit(focusTitle: false);
+    }
+
+    private void DetailSave_Click(object sender, RoutedEventArgs e) => EndDetailEdit(save: true);
+
+    private void DetailCancel_Click(object sender, RoutedEventArgs e) => EndDetailEdit(save: false);
+
+    /// <summary>공통 단축키: Esc 취소, Ctrl+Enter 또는 Ctrl+S 저장. 처리했으면 true</summary>
+    private bool HandleEditShortcut(KeyEventArgs e)
+    {
+        var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+        if (e.Key == Key.Escape)
+        {
+            e.Handled = true;
+            EndDetailEdit(save: false);
+            return true;
+        }
+        if (ctrl && (e.Key == Key.Enter || e.Key == Key.S))
+        {
+            e.Handled = true;
+            EndDetailEdit(save: true);
+            return true;
+        }
+        return false;
+    }
+
+    private void DetailTitleBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (HandleEditShortcut(e)) return;
+
+        // 제목칸에서 Enter는 본문칸으로 이동
+        if (e.Key == Key.Enter)
+        {
+            e.Handled = true;
+            Keyboard.Focus(DetailBodyBox);
+            DetailBodyBox.CaretIndex = DetailBodyBox.Text.Length;
+        }
+    }
+
+    private void DetailBodyBox_KeyDown(object sender, KeyEventArgs e) => HandleEditShortcut(e);
 
     private bool Matches(object item)
     {
@@ -53,9 +215,17 @@ public partial class AllNotesWindow : Window
     private void Refresh()
     {
         var selected = NoteList.SelectedItem;
-        _view.Refresh();
-        if (selected is not null && _view.Contains(selected))
-            NoteList.SelectedItem = selected;
+        _refreshing = true;
+        try
+        {
+            _view.Refresh();
+            if (selected is not null && _view.Contains(selected))
+                NoteList.SelectedItem = selected;
+        }
+        finally
+        {
+            _refreshing = false;
+        }
         UpdateCount();
     }
 
@@ -196,6 +366,8 @@ public partial class AllNotesWindow : Window
             MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes) return;
 
+        if (_editing == note)
+            EndDetailEdit(save: false);
         _store.Delete(note);
         UpdateCount();
     }

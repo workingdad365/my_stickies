@@ -10,6 +10,7 @@ internal sealed class TrayIcon : IDisposable
 {
     private readonly WF.NotifyIcon _icon;
     private readonly Icon _image;
+    private readonly WF.ToolStripMenuItem _toggleItem;
 
     /// <summary>메뉴의 "새 메모" 선택</summary>
     public event Action? AddNoteRequested;
@@ -19,6 +20,9 @@ internal sealed class TrayIcon : IDisposable
 
     /// <summary>메뉴의 "설정" 선택</summary>
     public event Action? SettingsRequested;
+
+    /// <summary>메뉴의 "감추기" 또는 "보이기" 선택</summary>
+    public event Action? ToggleVisibilityRequested;
 
     /// <summary>메뉴의 "종료" 선택</summary>
     public event Action? ExitRequested;
@@ -36,6 +40,8 @@ internal sealed class TrayIcon : IDisposable
         menu.Items.Add("새 메모", null, (_, _) => AddNoteRequested?.Invoke());
         menu.Items.Add("메모 관리", null, (_, _) => AllNotesRequested?.Invoke());
         menu.Items.Add("설정", null, (_, _) => SettingsRequested?.Invoke());
+        _toggleItem = new WF.ToolStripMenuItem("감추기", null, (_, _) => ToggleVisibilityRequested?.Invoke());
+        menu.Items.Add(_toggleItem);
         menu.Items.Add(new WF.ToolStripSeparator());
         menu.Items.Add("종료", null, (_, _) => ExitRequested?.Invoke());
 
@@ -52,6 +58,9 @@ internal sealed class TrayIcon : IDisposable
                 Clicked?.Invoke();
         };
     }
+
+    /// <summary>덱이 감춰진 상태에 맞춰 메뉴 문구를 "보이기" 또는 "감추기"로 바꿈</summary>
+    public void SetHidden(bool hidden) => _toggleItem.Text = hidden ? "보이기" : "감추기";
 
     public void Dispose()
     {

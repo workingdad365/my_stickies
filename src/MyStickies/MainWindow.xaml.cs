@@ -31,6 +31,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _collapseTimer = new();
     private readonly DispatcherTimer _fullscreenTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private bool _hiddenForFullscreen;
+    private bool _hiddenByUser;
     private GlobalHotkeys? _hotkeys;
 
     /// <summary>해상도/배율/작업 표시줄 변경은 연속으로 여러 번 오므로 잠시 모아서 한 번만 재배치</summary>
@@ -128,12 +129,19 @@ public partial class MainWindow : Window
         _hotkeys.ToggleDeck += () =>
         {
             if (_hiddenForFullscreen) return;
+            if (_hiddenByUser)
+            {
+                SetHiddenByUser(false);
+                FanOut();
+                return;
+            }
             if (_fanned) Collapse();
             else FanOut();
         };
         _hotkeys.NewNote += () =>
         {
             if (_hiddenForFullscreen) return;
+            if (_hiddenByUser) SetHiddenByUser(false);
             AddNoteAndEdit();
         };
         ApplyHotkeySetting();
@@ -183,6 +191,30 @@ public partial class MainWindow : Window
         else if (!fullscreen && _hiddenForFullscreen)
         {
             _hiddenForFullscreen = false;
+            if (!_hiddenByUser) Show();
+        }
+    }
+
+    /// <summary>
+    /// 메뉴의 감추기/보이기. 감추면 책갈피와 덱을 포함한 창 전체를 숨김.
+    /// 저장하지 않으므로 다시 실행하면 보이는 상태로 시작함
+    /// </summary>
+    private void SetHiddenByUser(bool hidden)
+    {
+        if (_hiddenByUser == hidden) return;
+        _hiddenByUser = hidden;
+        ToggleVisibilityItem.Header = hidden ? "보이기" : "감추기";
+        _tray?.SetHidden(hidden);
+
+        if (hidden)
+        {
+            _editingTab?.EndEdit();
+            _collapseTimer.Stop();
+            if (_fanned) Collapse();
+            Hide();
+        }
+        else if (!_hiddenForFullscreen)
+        {
             Show();
         }
     }
@@ -326,14 +358,22 @@ public partial class MainWindow : Window
         _tray = new TrayIcon(res.Stream, $"My Stickies {AppInfo.Version}");
         _tray.AddNoteRequested += () =>
         {
+            if (_hiddenByUser) SetHiddenByUser(false);
             AddNote();
             if (!_fanned) FanOut();
         };
         _tray.AllNotesRequested += ShowAllNotes;
         _tray.SettingsRequested += ShowSettings;
+        _tray.ToggleVisibilityRequested += () => SetHiddenByUser(!_hiddenByUser);
         _tray.ExitRequested += () => Application.Current.Shutdown();
         _tray.Clicked += () =>
         {
+            if (_hiddenByUser)
+            {
+                SetHiddenByUser(false);
+                FanOut();
+                return;
+            }
             if (_fanned) Collapse();
             else FanOut();
         };
@@ -719,6 +759,8 @@ public partial class MainWindow : Window
     private void AllNotes_Click(object sender, RoutedEventArgs e) => ShowAllNotes();
 
     private void Settings_Click(object sender, RoutedEventArgs e) => ShowSettings();
+
+    private void ToggleVisibility_Click(object sender, RoutedEventArgs e) => SetHiddenByUser(!_hiddenByUser);
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
 }
