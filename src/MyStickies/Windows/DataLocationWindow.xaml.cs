@@ -25,7 +25,7 @@ public partial class DataLocationWindow : Window
         MonitorBox.SelectedItem is MonitorInfo { IsPrimary: false } m ? m.DeviceName : null;
 
     public int DeckMaxNotes => MaxNotesBox.SelectedItem is int n ? n : DeckGeometry.DefaultMaxDeckNotes;
-    public int DeckTopPercent => (int)Math.Round(TopPercentSlider.Value);
+    public int DeckCenterPercent => (int)Math.Round(CenterPercentSlider.Value);
     public int CollapseDelayMs => (int)Math.Round(DelaySlider.Value);
     public bool HideOnFullscreen => HideOnFullscreenBox.IsChecked == true;
     public bool GlobalHotkeys => HotkeysBox.IsChecked == true;
@@ -70,7 +70,7 @@ public partial class DataLocationWindow : Window
             MaxNotesBox.ItemsSource = Enumerable.Range(DeckGeometry.MinMaxDeckNotes,
                 DeckGeometry.MaxMaxDeckNotes - DeckGeometry.MinMaxDeckNotes + 1).ToList();
             MaxNotesBox.SelectedItem = Math.Clamp(settings.DeckMaxNotes, DeckGeometry.MinMaxDeckNotes, DeckGeometry.MaxMaxDeckNotes);
-            TopPercentSlider.Value = Math.Clamp(settings.DeckTopPercent, 0, 80);
+            CenterPercentSlider.Value = Math.Clamp(settings.DeckCenterPercent, 10, 90);
             DelaySlider.Value = Math.Clamp(settings.CollapseDelayMs, 100, 2000);
             HideOnFullscreenBox.IsChecked = settings.HideOnFullscreen;
             HotkeysBox.IsChecked = settings.GlobalHotkeys;

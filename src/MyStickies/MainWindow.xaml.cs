@@ -204,7 +204,7 @@ public partial class MainWindow : Window
     /// <summary>덱 표시 개수, 시작 위치, 접힘 지연을 설정값으로 적용</summary>
     private void ApplyDeckSettings()
     {
-        DeckGeometry.Configure(_settings.DeckMaxNotes, _settings.DeckTopPercent / 100.0);
+        DeckGeometry.Configure(_settings.DeckMaxNotes, _settings.DeckCenterPercent / 100.0);
         _collapseTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(_settings.CollapseDelayMs, 100, 3000));
     }
 
@@ -222,13 +222,13 @@ public partial class MainWindow : Window
         var layoutChanged =
             !string.Equals(dialog.SelectedMonitor, _settings.DockMonitor, StringComparison.OrdinalIgnoreCase)
             || dialog.DeckMaxNotes != _settings.DeckMaxNotes
-            || dialog.DeckTopPercent != _settings.DeckTopPercent
+            || dialog.DeckCenterPercent != _settings.DeckCenterPercent
             || dialog.CollapseDelayMs != _settings.CollapseDelayMs;
         if (layoutChanged)
         {
             _settings.DockMonitor = dialog.SelectedMonitor;
             _settings.DeckMaxNotes = dialog.DeckMaxNotes;
-            _settings.DeckTopPercent = dialog.DeckTopPercent;
+            _settings.DeckCenterPercent = dialog.DeckCenterPercent;
             _settings.CollapseDelayMs = dialog.CollapseDelayMs;
             _settings.Save(AppSettings.SettingsPath);
             ApplyDeckSettings();
@@ -364,20 +364,22 @@ public partial class MainWindow : Window
         Width = width;
         Height = height;
 
-        // 노트 수가 아니라 최대 수용 개수 기준으로 계산하므로 덱과 추가 버튼 위치가 흔들리지 않음
-        var deckTop = DeckGeometry.DeckTop(wa.Height, DeckGeometry.DeckBlockHeight);
+        // 실제 표시 노트 수 기준으로 설정한 중심선에 덱을 맞춤. 노트가 늘면 위아래로 균등하게 늘어나고,
+        // 화면을 넘칠 때만 여백 안으로 보정. 추가 버튼은 덱 스택 안에 있어 마지막 노트를 따라감
+        var count = DeckNotes.Count;
+        var deckTop = DeckGeometry.DeckTop(wa.Height, DeckGeometry.DeckBlockHeightFor(count));
         Deck.Margin = new Thickness(0, deckTop, 0, 0);
         Bookmark.Margin = new Thickness(0, deckTop, 0, 0);
-        PlusButton.Margin = new Thickness(0, DeckGeometry.PlusTop(deckTop), 12, 0);
 
         HoverZone.Width = DeckGeometry.HoverZoneWidth;
-        HoverZone.Height = DeckGeometry.DeckBlockHeight;
+        HoverZone.Height = DeckGeometry.DeckBlockHeightFor(count);
         HoverZone.Margin = new Thickness(0, deckTop, 0, 0);
     }
 
     /// <summary>활성 노트 중 최근 MaxDeckNotes 개만 덱에 남김. 기존 탭은 재생성하지 않고 차이만 반영</summary>
     private void SyncDeckNotes()
     {
+        var countBefore = DeckNotes.Count;
         var target = Notes.Where(n => !n.IsArchived).TakeLast(DeckGeometry.MaxDeckNotes).ToList();
 
         for (var i = DeckNotes.Count - 1; i >= 0; i--)
@@ -411,6 +413,10 @@ public partial class MainWindow : Window
 
         if (inserted)
             RevealNewTabs();
+
+        // 덱 높이가 노트 수에 따라 달라지므로 개수가 바뀌면 중심 기준 위치와 추가 버튼을 다시 배치
+        if (IsLoaded && DeckNotes.Count != countBefore)
+            PlaceWindow();
     }
 
     /// <summary>새로 생성된 탭 컨테이너는 휴면 위치에서 시작하므로, 팬아웃 중이면 팬아웃 위치로 즉시 이동</summary>

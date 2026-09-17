@@ -48,9 +48,10 @@ public static class DeckGeometry
     public const int MinMaxDeckNotes = 3;
     public const int MaxMaxDeckNotes = 8;
 
-    /// <summary>덱 시작 위치 비율 기본값(0.15 = 화면 위에서 15%)과 허용 범위</summary>
-    public const double DefaultDeckTopRatio = 0.15;
-    public const double MaxDeckTopRatio = 0.8;
+    /// <summary>덱 세로 중심 위치 비율 기본값(0.5 = 화면 세로 중앙)과 허용 범위</summary>
+    public const double DefaultDeckCenterRatio = 0.5;
+    public const double MinDeckCenterRatio = 0.1;
+    public const double MaxDeckCenterRatio = 0.9;
 
     /// <summary>덱에 동시에 표시하는 최대 노트 수. 초과분은 최근 노트만 표시. Configure로 변경</summary>
     public static int MaxDeckNotes { get; private set; } = DefaultMaxDeckNotes;
@@ -61,15 +62,18 @@ public static class DeckGeometry
     /// <summary>덱 하단과 추가 버튼 사이 간격</summary>
     public const double PlusGap = 4;
 
-    /// <summary>화면 높이 대비 덱 시작 위치 비율. Configure로 변경</summary>
-    public static double DeckTopRatio { get; private set; } = DefaultDeckTopRatio;
+    /// <summary>화면 높이 대비 덱 세로 중심 위치 비율. 덱은 이 선을 중심으로 위아래로 늘어남. Configure로 변경</summary>
+    public static double DeckCenterRatio { get; private set; } = DefaultDeckCenterRatio;
 
     /// <summary>설정값 적용. 범위를 벗어나면 허용 범위로 보정</summary>
-    public static void Configure(int maxDeckNotes, double deckTopRatio)
+    public static void Configure(int maxDeckNotes, double deckCenterRatio)
     {
         MaxDeckNotes = Math.Clamp(maxDeckNotes, MinMaxDeckNotes, MaxMaxDeckNotes);
-        DeckTopRatio = Math.Clamp(deckTopRatio, 0, MaxDeckTopRatio);
+        DeckCenterRatio = Math.Clamp(deckCenterRatio, MinDeckCenterRatio, MaxDeckCenterRatio);
     }
+
+    /// <summary>덱 블록 위에 남겨 두는 최소 여백. 다른 창의 제목 표시줄 버튼을 가리지 않도록 함</summary>
+    public const double DeckTopMargin = 40;
 
     /// <summary>덱 블록 아래에 남겨 두는 최소 여백. 모니터 바닥에 붙지 않도록 함</summary>
     public const double DeckBottomMargin = 40;
@@ -83,8 +87,19 @@ public static class DeckGeometry
     /// <summary>덱 카드 영역 + 추가 버튼까지 포함한 전체 높이</summary>
     public static double DeckBlockHeight => DeckCapacityHeight + PlusGap + PlusButtonSize;
 
-    /// <summary>추가 버튼 상단 위치. 덱 상단 기준으로 항상 같은 자리</summary>
-    public static double PlusTop(double deckTop) => deckTop + DeckCapacityHeight + PlusGap;
+    /// <summary>실제 표시 노트 수 기준 카드 영역 높이. 최대 수용 개수를 넘지 않음</summary>
+    public static double DeckHeightFor(int noteCount) =>
+        Math.Clamp(noteCount, 0, MaxDeckNotes) * (CardHeight + CardGap);
+
+    /// <summary>
+    /// 실제 표시 노트 수 기준 카드 영역 + 추가 버튼 전체 높이.
+    /// 시작 위치 보정과 호버 영역은 최대 수용 개수가 아니라 이 값을 사용함.
+    /// 최대 수용 개수 기준으로 보정하면 작은 화면에서 메모가 적어도 시작 위치 설정이 무시됨
+    /// </summary>
+    public static double DeckBlockHeightFor(int noteCount) => DeckHeightFor(noteCount) + PlusGap + PlusButtonSize;
+
+    /// <summary>추가 버튼 상단 위치(팬아웃 상태 기준). 실제 표시 중인 마지막 노트 바로 아래. 배치 검증에 사용</summary>
+    public static double PlusTop(double deckTop, int noteCount) => deckTop + DeckHeightFor(noteCount) + PlusGap;
 
     /// <summary>확장 상태: 카드가 완전히 화면 안에 위치</summary>
     public static double ExpandedOffset => 0;
@@ -100,11 +115,14 @@ public static class DeckGeometry
         double workLeft, double workTop, double workWidth, double workHeight) =>
         (workLeft + workWidth - WindowWidth, workTop, WindowWidth, workHeight);
 
-    /// <summary>덱의 상단 위치. 하단 여백을 확보하되 화면 아래로 넘치지 않도록 보정</summary>
+    /// <summary>
+    /// 덱의 상단 위치. 설정한 중심선에 덱 블록의 세로 중앙을 맞추고,
+    /// 상하 여백을 벗어나면 화면 안으로 보정. 덱이 화면보다 크면 상단 여백에 붙임
+    /// </summary>
     public static double DeckTop(double workHeight, double deckHeight)
     {
-        var top = workHeight * DeckTopRatio;
-        var max = Math.Max(0, workHeight - deckHeight - DeckBottomMargin);
-        return Math.Clamp(top, 0, max);
+        var top = workHeight * DeckCenterRatio - deckHeight / 2;
+        var max = Math.Max(DeckTopMargin, workHeight - deckHeight - DeckBottomMargin);
+        return Math.Clamp(top, DeckTopMargin, max);
     }
 }

@@ -1,7 +1,5 @@
 # My Stickies
 
-버전 1.0.0
-
 Windows 화면 오른쪽 가장자리에 붙어 있는 스티커 메모 앱. macOS 앱 [Hold My Notes](https://holdmynotes.app/)의 조작감을 Windows에서 재현한 것.
 
 평소에는 얇은 책갈피 모양으로 숨어 있다가, 마우스를 가져가면 메모들이 펼쳐지고, 메모 위에 올리면 내용이 보이며, 클릭하면 바로 편집됨.

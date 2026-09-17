@@ -36,30 +36,48 @@ public class DeckGeometryTests
     }
 
     [Fact]
-    public void DeckTop_UsesRatioWhenDeckFits()
+    public void DeckTop_CentersDeckOnConfiguredLineWhenItFits()
     {
         var top = DeckGeometry.DeckTop(1000, 600);
-        Assert.Equal(1000 * DeckGeometry.DeckTopRatio, top);
+        Assert.Equal(1000 * DeckGeometry.DeckCenterRatio - 300, top);
     }
 
     [Fact]
-    public void DeckTop_ClampsSoDeckStaysOnScreen()
+    public void DeckTop_GrowsEvenlyAroundCenterAsNotesAreAdded()
     {
-        var top = DeckGeometry.DeckTop(1000, 900);
-        Assert.Equal(1000 - 900 - DeckGeometry.DeckBottomMargin, top);
+        var one = DeckGeometry.DeckTop(1000, DeckGeometry.DeckBlockHeightFor(1));
+        var three = DeckGeometry.DeckTop(1000, DeckGeometry.DeckBlockHeightFor(3));
+        var step = DeckGeometry.CardHeight + DeckGeometry.CardGap;
+        Assert.Equal(one - step, three, 6);
+        Assert.Equal(one + DeckGeometry.DeckBlockHeightFor(1) / 2, three + DeckGeometry.DeckBlockHeightFor(3) / 2, 6);
     }
 
     [Fact]
-    public void DeckTop_IsZeroWhenDeckTallerThanScreen()
+    public void DeckTop_ClampsSoDeckStaysAboveBottomMargin()
     {
-        var top = DeckGeometry.DeckTop(500, 900);
-        Assert.Equal(0, top);
+        // 중심선을 아래쪽(70%)에 두면 덱이 하단 여백을 넘으므로 여백 위로 끌어올려짐
+        DeckGeometry.Configure(DeckGeometry.DefaultMaxDeckNotes, 0.7);
+        try
+        {
+            var top = DeckGeometry.DeckTop(1000, 900);
+            Assert.Equal(1000 - 900 - DeckGeometry.DeckBottomMargin, top);
+        }
+        finally { DeckGeometry.Configure(DeckGeometry.DefaultMaxDeckNotes, DeckGeometry.DefaultDeckCenterRatio); }
+    }
+
+    [Fact]
+    public void DeckTop_NeverGoesAboveTopMargin()
+    {
+        Assert.Equal(DeckGeometry.DeckTopMargin, DeckGeometry.DeckTop(500, 900));
+        DeckGeometry.Configure(DeckGeometry.DefaultMaxDeckNotes, 0.1);
+        try { Assert.Equal(DeckGeometry.DeckTopMargin, DeckGeometry.DeckTop(1000, 600)); }
+        finally { DeckGeometry.Configure(DeckGeometry.DefaultMaxDeckNotes, DeckGeometry.DefaultDeckCenterRatio); }
     }
 }
 
 public class DeckConfigureTests : IDisposable
 {
-    public void Dispose() => DeckGeometry.Configure(DeckGeometry.DefaultMaxDeckNotes, DeckGeometry.DefaultDeckTopRatio);
+    public void Dispose() => DeckGeometry.Configure(DeckGeometry.DefaultMaxDeckNotes, DeckGeometry.DefaultDeckCenterRatio);
 
     [Fact]
     public void Configure_AppliesValuesWithinRange()
@@ -67,7 +85,7 @@ public class DeckConfigureTests : IDisposable
         DeckGeometry.Configure(7, 0.3);
 
         Assert.Equal(7, DeckGeometry.MaxDeckNotes);
-        Assert.Equal(0.3, DeckGeometry.DeckTopRatio);
+        Assert.Equal(0.3, DeckGeometry.DeckCenterRatio);
         Assert.Equal(7 * (DeckGeometry.CardHeight + DeckGeometry.CardGap), DeckGeometry.DeckCapacityHeight);
     }
 
@@ -76,11 +94,11 @@ public class DeckConfigureTests : IDisposable
     {
         DeckGeometry.Configure(100, 5);
         Assert.Equal(DeckGeometry.MaxMaxDeckNotes, DeckGeometry.MaxDeckNotes);
-        Assert.Equal(DeckGeometry.MaxDeckTopRatio, DeckGeometry.DeckTopRatio);
+        Assert.Equal(DeckGeometry.MaxDeckCenterRatio, DeckGeometry.DeckCenterRatio);
 
         DeckGeometry.Configure(0, -1);
         Assert.Equal(DeckGeometry.MinMaxDeckNotes, DeckGeometry.MaxDeckNotes);
-        Assert.Equal(0, DeckGeometry.DeckTopRatio);
+        Assert.Equal(DeckGeometry.MinDeckCenterRatio, DeckGeometry.DeckCenterRatio);
     }
 }
 
@@ -125,19 +143,70 @@ public class DeckCapacityTests
     }
 
     [Fact]
-    public void PlusTop_SitsBelowFullDeck()
+    public void PlusTop_SitsBelowLastVisibleNote()
     {
-        var plusTop = DeckGeometry.PlusTop(200);
-        Assert.Equal(200 + DeckGeometry.DeckCapacityHeight + DeckGeometry.PlusGap, plusTop);
+        var plusTop = DeckGeometry.PlusTop(200, 2);
+        Assert.Equal(200 + 2 * (DeckGeometry.CardHeight + DeckGeometry.CardGap) + DeckGeometry.PlusGap, plusTop);
+    }
+
+    [Fact]
+    public void DeckHeightFor_ClampsToCapacity()
+    {
+        Assert.Equal(0, DeckGeometry.DeckHeightFor(0));
+        Assert.Equal(DeckGeometry.CardHeight + DeckGeometry.CardGap, DeckGeometry.DeckHeightFor(1));
+        Assert.Equal(DeckGeometry.DeckCapacityHeight, DeckGeometry.DeckHeightFor(DeckGeometry.MaxDeckNotes + 3));
+        Assert.Equal(DeckGeometry.DeckBlockHeight, DeckGeometry.DeckBlockHeightFor(DeckGeometry.MaxDeckNotes));
     }
 
     [Fact]
     public void FullDeckWithPlus_FitsIn4kWorkAreaAt200Percent()
     {
         // 4K 200% 배율: 작업 영역 높이 1032 DIP
-        var deckTop = DeckGeometry.DeckTop(1032, DeckGeometry.DeckBlockHeight);
+        var count = DeckGeometry.MaxDeckNotes;
+        var deckTop = DeckGeometry.DeckTop(1032, DeckGeometry.DeckBlockHeightFor(count));
         Assert.True(deckTop >= 0);
-        Assert.True(DeckGeometry.PlusTop(deckTop) + DeckGeometry.PlusButtonSize + DeckGeometry.DeckBottomMargin <= 1032,
+        Assert.True(DeckGeometry.PlusTop(deckTop, count) + DeckGeometry.PlusButtonSize + DeckGeometry.DeckBottomMargin <= 1032,
             "덱 하단에 여백이 남아야 함");
+    }
+}
+
+/// <summary>1080p 작업 영역(1032 DIP)에서 덱 최대 6장, 중심 50%로 두고 메모 수가 바뀌는 경우</summary>
+public class DeckTopWithFewNotesTests : IDisposable
+{
+    public DeckTopWithFewNotesTests() => DeckGeometry.Configure(6, 0.5);
+    public void Dispose() => DeckGeometry.Configure(DeckGeometry.DefaultMaxDeckNotes, DeckGeometry.DefaultDeckCenterRatio);
+
+    [Fact]
+    public void SingleNote_SitsAtScreenCenter_NotAtTop()
+    {
+        var block = DeckGeometry.DeckBlockHeightFor(1);
+        var deckTop = DeckGeometry.DeckTop(1032, block);
+        Assert.Equal(516 - block / 2, deckTop);
+        Assert.True(deckTop > 300, "메모가 1장이면 화면 위쪽에 붙지 않아야 함");
+    }
+
+    [Fact]
+    public void FullDeck_TooTallForBothMargins_KeepsTopMarginAndStaysOnScreen()
+    {
+        // 6장(982 DIP)은 상하 여백 40씩을 모두 확보할 수 없음. 상단 여백을 우선하고 화면 안에는 들어가야 함
+        var deckTop = DeckGeometry.DeckTop(1032, DeckGeometry.DeckBlockHeightFor(6));
+        Assert.Equal(DeckGeometry.DeckTopMargin, deckTop);
+        Assert.True(DeckGeometry.PlusTop(deckTop, 6) + DeckGeometry.PlusButtonSize <= 1032);
+    }
+
+    [Fact]
+    public void FiveNotes_FitWithinBothMargins()
+    {
+        var deckTop = DeckGeometry.DeckTop(1032, DeckGeometry.DeckBlockHeightFor(5));
+        Assert.True(deckTop >= DeckGeometry.DeckTopMargin);
+        Assert.True(DeckGeometry.PlusTop(deckTop, 5) + DeckGeometry.PlusButtonSize + DeckGeometry.DeckBottomMargin <= 1032);
+    }
+
+    [Fact]
+    public void CapacityBasedClamp_WouldHavePinnedDeckToTop()
+    {
+        // 수정 전 동작 재현: 최대 수용 개수 기준 보정은 메모가 1장이어도 덱을 화면 맨 위에 붙였음
+        var oldTop = DeckGeometry.DeckTop(1032, DeckGeometry.DeckBlockHeight);
+        Assert.Equal(DeckGeometry.DeckTopMargin, oldTop);
     }
 }

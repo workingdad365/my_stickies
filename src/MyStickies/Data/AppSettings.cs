@@ -20,8 +20,8 @@ public sealed class AppSettings
     /// <summary>덱에 동시에 표시할 최대 메모 수</summary>
     public int DeckMaxNotes { get; set; } = 5;
 
-    /// <summary>덱 시작 위치. 화면 위에서부터 퍼센트</summary>
-    public int DeckTopPercent { get; set; } = 15;
+    /// <summary>덱 세로 중심 위치. 화면 위에서부터 퍼센트. 메모가 늘면 이 선을 중심으로 위아래로 늘어남</summary>
+    public int DeckCenterPercent { get; set; } = 50;
 
     /// <summary>마우스가 벗어난 뒤 덱이 접히기까지 지연 (ms)</summary>
     public int CollapseDelayMs { get; set; } = 350;

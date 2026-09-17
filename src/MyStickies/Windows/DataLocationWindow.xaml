@@ -98,11 +98,11 @@
                     <TextBlock Text="장" FontSize="13" VerticalAlignment="Center" Margin="8,0,0,0"/>
                 </StackPanel>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="시작 위치" FontSize="13" VerticalAlignment="Center"/>
-                <Slider x:Name="TopPercentSlider" Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="80"
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="세로 위치" FontSize="13" VerticalAlignment="Center"/>
+                <Slider x:Name="CenterPercentSlider" Grid.Row="1" Grid.Column="1" Minimum="10" Maximum="90"
                         TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="0,6"/>
                 <TextBlock Grid.Row="1" Grid.Column="2" FontSize="13" VerticalAlignment="Center" Margin="8,0,0,0"
-                           Text="{Binding Value, ElementName=TopPercentSlider, StringFormat='위에서 {0:0}%'}"/>
+                           Text="{Binding Value, ElementName=CenterPercentSlider, StringFormat='중심 위에서 {0:0}%'}"/>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="접힘 지연" FontSize="13" VerticalAlignment="Center"/>
                 <Slider x:Name="DelaySlider" Grid.Row="2" Grid.Column="1" Minimum="100" Maximum="2000"

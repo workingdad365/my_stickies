@@ -77,24 +77,55 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <!-- 새 메모 추가 버튼. 마지막 카드 바로 아래에 붙어 카드가 확장되면 함께 밀려 내려감.
+                 위가 밝고 아래가 어두운 그라데이션과 테두리, 그림자로 입체감을 줌 -->
+            <Border x:Name="PlusButton"
+                    Width="30" Height="30" Margin="0,4,12,0"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    CornerRadius="15" BorderThickness="1"
+                    Cursor="Hand"
+                    MouseLeftButtonUp="PlusButton_Click">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="BorderBrush" Value="#8C8C9A"/>
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FFFFFF" Offset="0"/>
+                                    <GradientStop Color="#EDEDF1" Offset="0.5"/>
+                                    <GradientStop Color="#CFCFD8" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="#6E6E7C"/>
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#FFFFFF" Offset="0"/>
+                                            <GradientStop Color="#F6F6F9" Offset="0.5"/>
+                                            <GradientStop Color="#DCDCE4" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="3" Direction="270" Opacity="0.45"/>
+                </Border.Effect>
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="PlusTranslate" X="80"/>
+                </Border.RenderTransform>
+                <!-- 안쪽 위 가장자리 하이라이트로 볼록한 느낌 -->
+                <Border CornerRadius="14" BorderThickness="1,1,1,0" BorderBrush="#B0FFFFFF">
+                    <TextBlock Text="+" FontSize="19" FontWeight="SemiBold" Foreground="#3A3A48"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Margin="0,-3,0,0"/>
+                </Border>
+            </Border>
         </StackPanel>
-
-        <!-- 새 노트 추가 버튼: 덱과 분리된 고정 오버레이. 노트 수와 무관하게 같은 자리 -->
-        <Border x:Name="PlusButton"
-                Width="30" Height="30" Margin="0,0,12,0"
-                HorizontalAlignment="Right" VerticalAlignment="Top"
-                CornerRadius="15" Background="#F4F4F6"
-                Cursor="Hand"
-                MouseLeftButtonUp="PlusButton_Click">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
-            </Border.Effect>
-            <Border.RenderTransform>
-                <TranslateTransform x:Name="PlusTranslate" X="80"/>
-            </Border.RenderTransform>
-            <TextBlock Text="+" FontSize="18" Foreground="#55555F"
-                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Margin="0,-2,0,0"/>
-        </Border>
     </Grid>
 </Window>
