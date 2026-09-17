@@ -20,12 +20,12 @@ namespace MyStickies;
 
 /// <summary>
 /// 화면 우측 가장자리에 도킹되는 투명 창.
-/// 휴면(알약) -> 팬아웃(탭 목록) -> 확장(노트 본문) -> 편집 상태 전환 담당.
+/// 휴면(책갈피) -> 팬아웃(탭 목록) -> 확장(노트 본문) -> 편집 상태 전환 담당.
 /// </summary>
 public partial class MainWindow : Window
 {
     private static readonly TimeSpan StaggerStep = TimeSpan.FromMilliseconds(30);
-    private static readonly TimeSpan PillFade = TimeSpan.FromMilliseconds(150);
+    private static readonly TimeSpan BookmarkFade = TimeSpan.FromMilliseconds(150);
     private const double PlusHiddenOffset = 80;
 
     private readonly DispatcherTimer _collapseTimer = new();
@@ -367,7 +367,7 @@ public partial class MainWindow : Window
         // 노트 수가 아니라 최대 수용 개수 기준으로 계산하므로 덱과 추가 버튼 위치가 흔들리지 않음
         var deckTop = DeckGeometry.DeckTop(wa.Height, DeckGeometry.DeckBlockHeight);
         Deck.Margin = new Thickness(0, deckTop, 0, 0);
-        Pill.Margin = new Thickness(0, deckTop, 0, 0);
+        Bookmark.Margin = new Thickness(0, deckTop, 0, 0);
         PlusButton.Margin = new Thickness(0, DeckGeometry.PlusTop(deckTop), 12, 0);
 
         HoverZone.Width = DeckGeometry.HoverZoneWidth;
@@ -451,8 +451,8 @@ public partial class MainWindow : Window
         _fanned = true;
 
         HoverZone.IsHitTestVisible = true;
-        Pill.IsHitTestVisible = false;
-        Pill.BeginAnimation(OpacityProperty, new DoubleAnimation(0, PillFade));
+        Bookmark.IsHitTestVisible = false;
+        Bookmark.BeginAnimation(OpacityProperty, new DoubleAnimation(0, BookmarkFade));
 
         var index = 0;
         foreach (var tab in Tabs())
@@ -465,7 +465,7 @@ public partial class MainWindow : Window
             Slide(0, 260, EasingMode.EaseOut, StaggerStep * index));
     }
 
-    /// <summary>팬아웃 -> 휴면. 전부 화면 밖으로 밀어내고 알약 표시. 편집 중에는 동작하지 않음</summary>
+    /// <summary>팬아웃 -> 휴면. 전부 화면 밖으로 밀어내고 책갈피 표시. 편집 중에는 동작하지 않음</summary>
     private void Collapse()
     {
         if (_editingTab is not null) return;
@@ -485,9 +485,9 @@ public partial class MainWindow : Window
         PlusTranslate.BeginAnimation(TranslateTransform.XProperty,
             Slide(PlusHiddenOffset, 200, EasingMode.EaseIn));
 
-        Pill.IsHitTestVisible = true;
-        Pill.BeginAnimation(OpacityProperty,
-            new DoubleAnimation(1, PillFade) { BeginTime = TimeSpan.FromMilliseconds(180) });
+        Bookmark.IsHitTestVisible = true;
+        Bookmark.BeginAnimation(OpacityProperty,
+            new DoubleAnimation(1, BookmarkFade) { BeginTime = TimeSpan.FromMilliseconds(180) });
     }
 
     private void Window_MouseEnter(object sender, MouseEventArgs e)

@@ -14,8 +14,8 @@
         <conv:RelativeTimeConverter x:Key="RelativeTime"/>
         <SolidColorBrush x:Key="MutedBrush" Color="#7A7A85"/>
 
-        <!-- 필터 알약 버튼 -->
-        <Style x:Key="FilterPill" TargetType="RadioButton">
+        <!-- 필터 칩 버튼 -->
+        <Style x:Key="FilterChip" TargetType="RadioButton">
             <Setter Property="Margin" Value="0,0,6,0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
@@ -171,9 +171,9 @@
 
             <!-- 필터 -->
             <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,10">
-                <RadioButton Content="전체" Tag="all" IsChecked="True" Style="{StaticResource FilterPill}" Checked="Filter_Checked"/>
-                <RadioButton Content="활성" Tag="active" Style="{StaticResource FilterPill}" Checked="Filter_Checked"/>
-                <RadioButton Content="숨김" Tag="archived" Style="{StaticResource FilterPill}" Checked="Filter_Checked"/>
+                <RadioButton Content="전체" Tag="all" IsChecked="True" Style="{StaticResource FilterChip}" Checked="Filter_Checked"/>
+                <RadioButton Content="활성" Tag="active" Style="{StaticResource FilterChip}" Checked="Filter_Checked"/>
+                <RadioButton Content="숨김" Tag="archived" Style="{StaticResource FilterChip}" Checked="Filter_Checked"/>
             </StackPanel>
 
             <ListBox x:Name="NoteList" Grid.Row="3"
