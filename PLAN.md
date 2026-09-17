@@ -58,11 +58,13 @@ macOS 앱 Hold My Notes(https://holdmynotes.app/)의 Windows 클론. 기술 스�
 ### 품질 및 배포
 - [x] 글꼴 선택 (시스템 설치 글꼴 목록, 제목·본문 일괄) 및 본문 크기 조절 (10~24pt)
 - [x] 단일 exe 게시 스크립트 publish.ps1 (Release, win-x64, 런타임 포함, %LocalAppData%\Programs\MyStickies)
+- [x] 설치 파일: Inno Setup 스크립트(installer/MyStickies.iss)와 build-installer.ps1 -> dist/MyStickies-Setup-<버전>.exe
 - [x] 앱 아이콘 (Assets/app.ico, 스크립트로 생성)
 - [x] README.md 작성 (소개, 기능, 빌드/게시 방법, 데이터 위치와 동기화 폴더 사용법, 단축키, 설정, 구조)
 
 ## 제외 (2026-09-17 결정)
 
-- 설치 프로그램/MSIX 패키징, UI 자동 검증 스크립트, 다크 모드는 당분간 진행하지 않음
+- UI 자동 검증 스크립트, 다크 모드는 당분간 진행하지 않음
+- 설치 프로그램은 제외를 철회하고 Inno Setup으로 구현함 (품질 및 배포 항목 참조)
 - 앱 자체 동기화 기능(클라우드 계정 등)은 제외. 동기화 폴더에 DB를 두는 방식으로 대체
 - 동기화 동시 편집 충돌 처리는 단일 사용자 전제로 제외

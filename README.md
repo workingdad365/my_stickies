@@ -58,6 +58,20 @@ pwsh .\publish.ps1 -Output D:\Apps\MyStickies   # 다른 폴더로 게시
 - 실행 중인 인스턴스가 있으면 자동으로 종료한 뒤 게시
 - 자동 실행 등록은 게시된 exe에서 하는 것을 권장 (빌드 출력 폴더의 exe를 등록하면 정리 시 깨질 수 있음)
 
+## 설치 파일 만들기 (Inno Setup)
+
+```powershell
+winget install JRSoftware.InnoSetup      # 최초 1회
+pwsh .\build-installer.ps1                # dist\MyStickies-Setup-<버전>.exe 생성
+pwsh .\build-installer.ps1 -Install       # 생성 후 조용히 설치 (검증용)
+```
+
+- 사용자별 설치(관리자 권한 불필요), 설치 폴더는 `%LocalAppData%\Programs\MyStickies`
+- 시작 메뉴 바로 가기, 선택 항목으로 바탕 화면 바로 가기와 로그인 시 자동 실행
+- 실행 중인 앱은 설치 전에 자동 종료
+- 제거해도 메모 데이터와 설정(`%LocalAppData%\MyStickies`, 지정한 저장 폴더)은 남음
+- 코드 서명이 없으므로 다른 PC에서는 SmartScreen 경고가 뜰 수 있음 ("추가 정보 > 실행")
+
 ## 사용법
 
 ### 덱 조작
@@ -141,6 +155,8 @@ DB 스키마는 `PRAGMA user_version`으로 관리되며 구버전 파일은 시
 my_stickies/
   MyStickies.sln
   publish.ps1              게시 스크립트
+  build-installer.ps1      설치 파일 생성 스크립트
+  installer/MyStickies.iss Inno Setup 설치 스크립트
   PLAN.md                  개발 계획과 진행 상황
   src/MyStickies/
     App.xaml(.cs)          앱 리소스(글꼴/크기), 단일 인스턴스
