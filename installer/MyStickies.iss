@@ -3,7 +3,7 @@
 ; 사용자별 설치 (관리자 권한 불필요): %LocalAppData%\Programs\MyStickies
 
 #ifndef AppVersion
-  #define AppVersion "1.0.3"
+  #define AppVersion "1.0.4"
 #endif
 #ifndef PublishDir
   #define PublishDir "publish"
@@ -75,12 +75,20 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchAfterInstall}"; Flags: nowait postinstall skipifsilent
+; 앱 내 자동 업데이트(/SILENT /RELAUNCH=1)로 설치한 경우 앱을 바로 다시 실행
+Filename: "{app}\{#AppExe}"; Flags: nowait; Check: IsRelaunchRequested
 
 [UninstallRun]
 ; 제거 전 실행 중인 앱 종료
 Filename: "{sys}\taskkill.exe"; Parameters: "/IM {#AppExe} /F"; Flags: runhidden; RunOnceId: "KillApp"
 
 [Code]
+// 앱 내 자동 업데이트가 넘기는 /RELAUNCH=1 파라미터 여부
+function IsRelaunchRequested: Boolean;
+begin
+  Result := ExpandConstant('{param:RELAUNCH|0}') = '1';
+end;
+
 // 제거 시 앱이 직접 등록한 자동 실행 값도 정리 (설치 작업으로 만든 값은 uninsdeletevalue가 처리)
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin

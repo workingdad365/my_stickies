@@ -38,6 +38,12 @@ public sealed class AppSettings
     /// <summary>본문 글꼴 크기. 제목과 상세 창 크기는 이 값에서 파생</summary>
     public int FontSize { get; set; } = 14;
 
+    /// <summary>GitHub 릴리스에서 새 버전을 자동으로 확인할지 (시작 직후와 하루 한 번)</summary>
+    public bool CheckForUpdates { get; set; } = true;
+
+    /// <summary>"이 버전 건너뛰기"를 누른 릴리스 태그. 같은 버전은 자동 알림에서 제외</summary>
+    public string? SkippedVersion { get; set; }
+
     /// <summary>이 PC의 앱 로컬 폴더: %LocalAppData%\MyStickies</summary>
     public static string LocalDirectory => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MyStickies");

@@ -11,6 +11,7 @@ internal sealed class TrayIcon : IDisposable
     private readonly WF.NotifyIcon _icon;
     private readonly Icon _image;
     private readonly WF.ToolStripMenuItem _toggleItem;
+    private readonly WF.ToolStripMenuItem _updateItem;
 
     /// <summary>메뉴의 "새 메모" 선택</summary>
     public event Action? AddNoteRequested;
@@ -23,6 +24,9 @@ internal sealed class TrayIcon : IDisposable
 
     /// <summary>메뉴의 "감추기" 또는 "보이기" 선택</summary>
     public event Action? ToggleVisibilityRequested;
+
+    /// <summary>메뉴의 "업데이트 확인" 또는 "업데이트 설치" 선택, 또는 업데이트 풍선 알림 클릭</summary>
+    public event Action? UpdateRequested;
 
     /// <summary>메뉴의 "종료" 선택</summary>
     public event Action? ExitRequested;
@@ -43,6 +47,9 @@ internal sealed class TrayIcon : IDisposable
         _toggleItem = new WF.ToolStripMenuItem("감추기", null, (_, _) => ToggleVisibilityRequested?.Invoke());
         menu.Items.Add(_toggleItem);
         menu.Items.Add(new WF.ToolStripSeparator());
+        _updateItem = new WF.ToolStripMenuItem("업데이트 확인...", null, (_, _) => UpdateRequested?.Invoke());
+        menu.Items.Add(_updateItem);
+        menu.Items.Add(new WF.ToolStripSeparator());
         menu.Items.Add("종료", null, (_, _) => ExitRequested?.Invoke());
 
         _icon = new WF.NotifyIcon
@@ -57,7 +64,21 @@ internal sealed class TrayIcon : IDisposable
             if (e.Button == WF.MouseButtons.Left)
                 Clicked?.Invoke();
         };
+        _icon.BalloonTipClicked += (_, _) => UpdateRequested?.Invoke();
     }
+
+    /// <summary>새 버전이 대기 중이면 메뉴 문구를 "업데이트 vX 설치..."로, 없으면 "업데이트 확인..."으로</summary>
+    public void SetUpdateAvailable(string? version)
+    {
+        _updateItem.Text = version is null ? "업데이트 확인..." : $"업데이트 v{version} 설치...";
+        _updateItem.Font = version is null
+            ? null
+            : new Font(_updateItem.Font ?? WF.Control.DefaultFont, FontStyle.Bold);
+    }
+
+    /// <summary>알림 영역 풍선 알림. 클릭하면 UpdateRequested 발생</summary>
+    public void ShowBalloon(string title, string text) =>
+        _icon.ShowBalloonTip(8000, title, text, WF.ToolTipIcon.Info);
 
     /// <summary>덱이 감춰진 상태에 맞춰 메뉴 문구를 "보이기" 또는 "감추기"로 바꿈</summary>
     public void SetHidden(bool hidden) => _toggleItem.Text = hidden ? "보이기" : "감추기";

@@ -117,6 +117,10 @@
             <CheckBox x:Name="HotkeysBox" Content="전역 단축키 사용"
                       FontSize="13" Foreground="#23232B" Margin="0,8,0,0"/>
             <TextBlock x:Name="HotkeysHint" Style="{StaticResource Hint}" Margin="22,2,0,0"/>
+            <CheckBox x:Name="UpdateCheckBox" Content="새 버전 자동 확인"
+                      FontSize="13" Foreground="#23232B" Margin="0,8,0,0"/>
+            <TextBlock Text="시작 직후와 하루 한 번 GitHub 릴리스를 확인하고, 새 버전이 있으면 트레이 알림으로 알립니다. 트레이 메뉴의 &quot;업데이트 확인&quot;으로 언제든 직접 확인할 수 있습니다."
+                       Style="{StaticResource Hint}" Margin="22,2,0,0"/>
         </StackPanel>
 
         <!-- 글꼴: 설정 모드에서만 표시 -->

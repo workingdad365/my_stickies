@@ -29,6 +29,7 @@ public partial class DataLocationWindow : Window
     public int CollapseDelayMs => (int)Math.Round(DelaySlider.Value);
     public bool HideOnFullscreen => HideOnFullscreenBox.IsChecked == true;
     public bool GlobalHotkeys => HotkeysBox.IsChecked == true;
+    public bool CheckForUpdates => UpdateCheckBox.IsChecked == true;
 
     /// <summary>선택한 글꼴의 저장용 이름</summary>
     public string FontFamilyName =>
@@ -74,6 +75,7 @@ public partial class DataLocationWindow : Window
             DelaySlider.Value = Math.Clamp(settings.CollapseDelayMs, 100, 2000);
             HideOnFullscreenBox.IsChecked = settings.HideOnFullscreen;
             HotkeysBox.IsChecked = settings.GlobalHotkeys;
+            UpdateCheckBox.IsChecked = settings.CheckForUpdates;
             HotkeysHint.Text = Interop.GlobalHotkeys.Description + ". 다른 프로그램과 겹치면 끄세요.";
 
             var fonts = FontSettings.InstalledFonts();

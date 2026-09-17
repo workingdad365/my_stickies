@@ -16,6 +16,10 @@ using MyStickies.Models;
 using MyStickies.Tray;
 using MyStickies.Windows;
 
+using System.Net.Http;
+using System.Text.Json;
+using MyStickies.Update;
+
 namespace MyStickies;
 
 /// <summary>
@@ -32,6 +36,13 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _fullscreenTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private bool _hiddenForFullscreen;
     private bool _hiddenByUser;
+
+    /// <summary>자동 업데이트: 시작 15초 뒤 첫 확인, 이후 하루 한 번</summary>
+    private static readonly TimeSpan FirstUpdateCheckDelay = TimeSpan.FromSeconds(15);
+    private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromHours(24) };
+    private UpdateInfo? _pendingUpdate;
+    private bool _updateDialogOpen;
+    private bool _updateNotified;
     private GlobalHotkeys? _hotkeys;
 
     /// <summary>해상도/배율/작업 표시줄 변경은 연속으로 여러 번 오므로 잠시 모아서 한 번만 재배치</summary>
@@ -92,6 +103,7 @@ public partial class MainWindow : Window
         {
             PlaceWindow();
             InitTray();
+            StartUpdateChecks();
             // 시작 인자 --all-notes: 메모 관리 창을 바로 염 (바로 가기, 검증용)
             if (Environment.GetCommandLineArgs().Contains("--all-notes"))
                 ShowAllNotes();
@@ -116,6 +128,7 @@ public partial class MainWindow : Window
             _allNotesWindow?.Close();
             _store.Dispose();
             _fullscreenTimer.Stop();
+            _updateTimer.Stop();
             _hotkeys?.Dispose();
         };
     }
@@ -284,6 +297,14 @@ public partial class MainWindow : Window
             FontSettings.Apply(Application.Current.Resources, _settings.FontFamily, _settings.FontSize);
         }
 
+        if (dialog.CheckForUpdates != _settings.CheckForUpdates)
+        {
+            _settings.CheckForUpdates = dialog.CheckForUpdates;
+            _settings.Save(AppSettings.SettingsPath);
+            if (_settings.CheckForUpdates)
+                _ = CheckForUpdatesAsync(manual: false);
+        }
+
         if (dialog.GlobalHotkeys != _settings.GlobalHotkeys)
         {
             _settings.GlobalHotkeys = dialog.GlobalHotkeys;
@@ -365,6 +386,7 @@ public partial class MainWindow : Window
         _tray.AllNotesRequested += ShowAllNotes;
         _tray.SettingsRequested += ShowSettings;
         _tray.ToggleVisibilityRequested += () => SetHiddenByUser(!_hiddenByUser);
+        _tray.UpdateRequested += OnUpdateRequested;
         _tray.ExitRequested += () => Application.Current.Shutdown();
         _tray.Clicked += () =>
         {
@@ -377,6 +399,107 @@ public partial class MainWindow : Window
             if (_fanned) Collapse();
             else FanOut();
         };
+    }
+
+    /// <summary>자동 업데이트 확인 예약. 첫 확인은 시작 직후 잠시 뒤, 이후 하루 한 번</summary>
+    private void StartUpdateChecks()
+    {
+        _updateTimer.Tick += async (_, _) => await CheckForUpdatesAsync(manual: false);
+        _updateTimer.Start();
+        _ = FirstUpdateCheckAsync();
+    }
+
+    private async Task FirstUpdateCheckAsync()
+    {
+        await Task.Delay(FirstUpdateCheckDelay);
+        await CheckForUpdatesAsync(manual: false);
+    }
+
+    /// <summary>
+    /// GitHub 최신 릴리스 확인. 새 버전이면 트레이 메뉴 문구를 바꾸고 세션당 한 번 풍선 알림.
+    /// manual이 true면 설정과 건너뛴 버전을 무시하고 결과를 대화상자로 알림
+    /// </summary>
+    private async Task CheckForUpdatesAsync(bool manual)
+    {
+        if (!manual && !_settings.CheckForUpdates) return;
+
+        var current = UpdateChecker.ParseTag(AppInfo.Version) ?? new Version(0, 0, 0);
+        UpdateInfo? info;
+        try
+        {
+            info = await UpdateChecker.CheckAsync(current);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException or IOException)
+        {
+            if (manual)
+                MessageBox.Show($"업데이트 정보를 가져오지 못했습니다.\n{ex.Message}", "업데이트",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (info is null)
+        {
+            _pendingUpdate = null;
+            _tray?.SetUpdateAvailable(null);
+            if (manual)
+                MessageBox.Show($"현재 버전 {AppInfo.Version}이 최신입니다.", "업데이트",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        if (!manual && string.Equals(info.Tag, _settings.SkippedVersion, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        _pendingUpdate = info;
+        _tray?.SetUpdateAvailable(info.Version.ToString());
+
+        if (manual)
+        {
+            ShowUpdateDialog(info);
+        }
+        else if (!_updateNotified)
+        {
+            _updateNotified = true;
+            _tray?.ShowBalloon("My Stickies 업데이트", $"새 버전 v{info.Version}이 있습니다. 클릭하면 설치할 수 있습니다.");
+        }
+    }
+
+    /// <summary>트레이의 업데이트 항목이나 풍선 알림: 대기 중인 업데이트가 있으면 설치 대화상자, 없으면 즉시 확인</summary>
+    private async void OnUpdateRequested()
+    {
+        if (_pendingUpdate is not null)
+            ShowUpdateDialog(_pendingUpdate);
+        else
+            await CheckForUpdatesAsync(manual: true);
+    }
+
+    /// <summary>업데이트 대화상자. 설치를 시작했으면 설치기가 앱을 교체할 수 있도록 즉시 종료</summary>
+    private void ShowUpdateDialog(UpdateInfo info)
+    {
+        if (_updateDialogOpen) return;
+        _updateDialogOpen = true;
+        try
+        {
+            var dialog = new UpdateWindow(info);
+            var installing = dialog.ShowDialog() == true && dialog.Choice == UpdateChoice.Install;
+            if (installing)
+            {
+                Application.Current.Shutdown();
+                return;
+            }
+
+            if (dialog.Choice == UpdateChoice.Skip)
+            {
+                _settings.SkippedVersion = info.Tag;
+                _settings.Save(AppSettings.SettingsPath);
+                _pendingUpdate = null;
+                _tray?.SetUpdateAvailable(null);
+            }
+        }
+        finally
+        {
+            _updateDialogOpen = false;
+        }
     }
 
     private void OnDisplaySettingsChanged(object? sender, EventArgs e) => Dispatcher.BeginInvoke(RequestRelayout);
