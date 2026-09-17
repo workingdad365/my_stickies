@@ -1,0 +1,132 @@
+<UserControl x:Class="MyStickies.Controls.NoteTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="340" Height="150" Margin="0,0,0,8"
+             HorizontalAlignment="Right"
+             FontFamily="{DynamicResource NoteFont}"
+             MouseLeftButtonUp="Card_MouseLeftButtonUp">
+    <UserControl.RenderTransform>
+        <TranslateTransform x:Name="Translate" X="360"/>
+    </UserControl.RenderTransform>
+
+    <UserControl.Resources>
+        <!-- 편집용 텍스트 상자: 배경과 테두리를 없애 읽기 상태와 같은 모양 유지 -->
+        <Style x:Key="EditBox" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="-2,0,0,0"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Setter Property="FontFamily" Value="{DynamicResource NoteFont}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource NoteTitleBrush}"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Border x:Name="Card"
+            CornerRadius="16,0,0,16"
+            Background="{Binding ColorHex, Converter={StaticResource HexToBrush}}">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="18" ShadowDepth="3" Direction="200" Opacity="0.22"/>
+        </Border.Effect>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="44"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 세로 라벨: 아래에서 위로 읽히도록 270도 회전 -->
+            <TextBlock Grid.Column="0"
+                       Text="{Binding Label}"
+                       FontSize="12" FontWeight="SemiBold"
+                       Foreground="{StaticResource NoteLabelBrush}"
+                       HorizontalAlignment="Center" VerticalAlignment="Top"
+                       Margin="0,14,0,0" MaxWidth="120"
+                       TextTrimming="CharacterEllipsis">
+                <TextBlock.LayoutTransform>
+                    <RotateTransform Angle="270"/>
+                </TextBlock.LayoutTransform>
+            </TextBlock>
+
+            <!-- 절취선 느낌의 점선 -->
+            <Line Grid.Column="1" Width="1"
+                  X1="0" Y1="0" X2="0" Y2="1" Stretch="Fill"
+                  Stroke="{StaticResource NoteDashBrush}"
+                  StrokeThickness="1" StrokeDashArray="3 3"
+                  Margin="0,10"/>
+
+            <!-- 확장 시 나타나는 본문 영역 -->
+            <Grid x:Name="BodyPanel" Grid.Column="2"
+                  Margin="14,12,12,12" Opacity="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- 제목: 읽기용 TextBlock과 편집용 TextBox를 겹쳐 두고 전환 -->
+                <Grid Grid.Row="0" Margin="0,0,76,0">
+                    <TextBlock x:Name="TitleText"
+                               Text="{Binding Title}"
+                               FontSize="{DynamicResource NoteTitleSize}" FontWeight="SemiBold"
+                               Foreground="{StaticResource NoteTitleBrush}"
+                               TextTrimming="CharacterEllipsis"
+                               Cursor="IBeam"
+                               MouseLeftButtonUp="Title_MouseLeftButtonUp"/>
+                    <TextBox x:Name="TitleBox"
+                             Style="{StaticResource EditBox}"
+                             FontSize="{DynamicResource NoteTitleSize}" FontWeight="SemiBold"
+                             Foreground="{StaticResource NoteTitleBrush}"
+                             KeyDown="TitleBox_KeyDown"/>
+                </Grid>
+
+                <!-- 본문 -->
+                <Grid Grid.Row="1" Margin="0,6,0,0">
+                    <TextBlock x:Name="BodyText"
+                               Text="{Binding Body}"
+                               FontSize="{DynamicResource NoteBodySize}" LineHeight="{DynamicResource NoteBodyLineHeight}"
+                               Foreground="{StaticResource NoteBodyBrush}"
+                               TextWrapping="Wrap"
+                               Cursor="IBeam"/>
+                    <TextBox x:Name="BodyBox"
+                             Style="{StaticResource EditBox}"
+                             FontSize="{DynamicResource NoteBodySize}"
+                             Foreground="{StaticResource NoteBodyBrush}"
+                             AcceptsReturn="True" TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             KeyDown="BodyBox_KeyDown"
+                             TextChanged="BodyBox_TextChanged"/>
+                </Grid>
+
+                <!-- 색상 선택: 편집 모드에서만 표시. 점들은 코드 비하인드에서 팔레트 기준으로 생성 -->
+                <StackPanel x:Name="ColorRow" Grid.Row="2"
+                            Orientation="Horizontal" Margin="0,8,0,0"
+                            Visibility="Collapsed"/>
+
+                <!-- 숨김 버튼: 삭제 버튼 왼쪽 -->
+                <Border x:Name="CompleteButton" Grid.Row="0"
+                        Width="22" Height="22" Margin="0,0,26,0"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        CornerRadius="11" Background="#2E000000"
+                        Cursor="Hand" ToolTip="숨김"
+                        MouseLeftButtonUp="Complete_MouseLeftButtonUp">
+                    <TextBlock Text="−" FontSize="14" FontWeight="Bold" Foreground="White"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Margin="0,-2,0,0"/>
+                </Border>
+
+                <!-- 삭제 버튼: 카드 우측 상단. 한 번 누르면 3초간 "삭제" 확인 상태, 다시 누르면 삭제 -->
+                <Border x:Name="DeleteButton" Grid.Row="0"
+                        MinWidth="22" Height="22"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        CornerRadius="11" Background="#2E000000"
+                        Cursor="Hand" ToolTip="삭제"
+                        MouseLeftButtonUp="Delete_MouseLeftButtonUp">
+                    <TextBlock x:Name="DeleteLabel" Text="×" FontSize="15" Foreground="White"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Margin="0,-3,0,0"/>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

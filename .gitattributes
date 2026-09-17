@@ -1,0 +1,7 @@
+# 텍스트 파일 줄바꿈 정규화: 저장소는 LF, Windows 체크아웃은 CRLF
+* text=auto
+
+# 바이너리
+*.ico binary
+*.png binary
+*.db binary

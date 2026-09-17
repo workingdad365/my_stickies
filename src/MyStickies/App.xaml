@@ -1,0 +1,24 @@
+<Application x:Class="MyStickies.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             xmlns:conv="clr-namespace:MyStickies.Converters"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <conv:HexToBrushConverter x:Key="HexToBrush"/>
+
+        <!-- 메모 글꼴과 크기. 설정에 따라 FontSettings.Apply가 값을 바꾸므로 DynamicResource로 참조할 것 -->
+        <FontFamily x:Key="NoteFont">Malgun Gothic</FontFamily>
+        <sys:Double x:Key="NoteBodySize">14</sys:Double>
+        <sys:Double x:Key="NoteTitleSize">16</sys:Double>
+        <sys:Double x:Key="NoteBodyLineHeight">22</sys:Double>
+        <sys:Double x:Key="DetailTitleSize">22</sys:Double>
+        <sys:Double x:Key="DetailBodySize">15</sys:Double>
+        <sys:Double x:Key="DetailBodyLineHeight">26</sys:Double>
+
+        <SolidColorBrush x:Key="NoteTitleBrush" Color="#23232B"/>
+        <SolidColorBrush x:Key="NoteBodyBrush" Color="#2E2E36"/>
+        <SolidColorBrush x:Key="NoteLabelBrush" Color="#4A4A55"/>
+        <SolidColorBrush x:Key="NoteDashBrush" Color="#66404050"/>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,48 @@
+# 빌드 산출물
+bin/
+obj/
+publish/
+*.nupkg
+*.snupkg
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userprefs
+*.swp
+*.DotSettings.user
+launchSettings.json
+
+# 테스트, 커버리지
+TestResults/
+coverage*.json
+coverage*.xml
+*.trx
+
+# 앱 데이터 (실행 중 생성되는 파일. 저장소에 포함하지 않음)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+settings.json
+
+# 로그, 임시 파일
+*.log
+*.tmp
+*.bak
+*.orig
+
+# 스크린샷, 캡처 (검증용 임시 파일)
+*.png
+!src/MyStickies/Assets/*.png
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Claude Code 로컬 설정
+.claude/settings.local.json

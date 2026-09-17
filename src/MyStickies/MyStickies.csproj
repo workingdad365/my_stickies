@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>Assets/app.ico</ApplicationIcon>
+    <RootNamespace>MyStickies</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>MyStickies</AssemblyName>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Product>My Stickies</Product>
+    <Company>drasys</Company>
+    <Description>Sticky notes docked to the edge of your screen</Description>
+    <!-- WFO0003: WinForms용 DPI 경고. WPF 앱은 app.manifest의 PerMonitorV2 설정을 사용하므로 억제 -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets/app.ico" />
+  </ItemGroup>
+
+  <!-- WinForms는 트레이 아이콘(NotifyIcon)에만 사용. 암시적 using은 WPF 타입과 충돌하므로 제거 -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+</Project>

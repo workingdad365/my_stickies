@@ -1,0 +1,110 @@
+namespace MyStickies.Layout;
+
+/// <summary>
+/// 덱(노트 묶음) 배치 계산. WPF 타입에 의존하지 않는 순수 계산이므로 단위 테스트 가능.
+/// 단위는 모두 DIP(장치 독립 픽셀). 4K 등 고DPI 환경에서는 WPF가 자동으로 배율 적용.
+/// </summary>
+public static class DeckGeometry
+{
+    /// <summary>노트 카드 전체 폭</summary>
+    public const double CardWidth = 340;
+
+    /// <summary>팬아웃 상태에서 화면에 보이는 폭 (세로 라벨 + 점선)</summary>
+    public const double PeekWidth = 76;
+
+    /// <summary>팬아웃 상태의 카드 높이</summary>
+    public const double CardHeight = 150;
+
+    /// <summary>확장 상태의 최소 카드 높이</summary>
+    public const double ExpandedHeight = 200;
+
+    /// <summary>확장 상태의 최대 카드 높이. 초과분은 본문 스크롤</summary>
+    public const double MaxExpandedHeight = 480;
+
+    /// <summary>카드 왼쪽 세로 라벨 열 폭</summary>
+    public const double LabelColumnWidth = 44;
+
+    /// <summary>본문 영역 좌우 여백 (왼쪽 14 + 오른쪽 12)</summary>
+    public const double BodyHorizontalMargin = 26;
+
+    /// <summary>본문 영역 상하 여백 (위 12 + 아래 12)</summary>
+    public const double BodyVerticalMargin = 24;
+
+    /// <summary>본문 텍스트가 줄바꿈되는 폭 (카드 폭 - 라벨 열 - 점선 1 - 좌우 여백)</summary>
+    public static double BodyTextWidth => CardWidth - LabelColumnWidth - 1 - BodyHorizontalMargin;
+
+    /// <summary>본문 내용 높이에 맞는 확장 카드 높이. 최소/최대 범위로 제한</summary>
+    public static double ExpandedHeightFor(double contentHeight) =>
+        Math.Clamp(contentHeight + BodyVerticalMargin, ExpandedHeight, MaxExpandedHeight);
+
+    /// <summary>도킹 창 폭 (카드 폭 + 그림자 여유)</summary>
+    public const double WindowWidth = 360;
+
+    /// <summary>카드 사이 세로 간격</summary>
+    public const double CardGap = 8;
+
+    /// <summary>덱 표시 개수 기본값과 허용 범위</summary>
+    public const int DefaultMaxDeckNotes = 5;
+    public const int MinMaxDeckNotes = 3;
+    public const int MaxMaxDeckNotes = 8;
+
+    /// <summary>덱 시작 위치 비율 기본값(0.15 = 화면 위에서 15%)과 허용 범위</summary>
+    public const double DefaultDeckTopRatio = 0.15;
+    public const double MaxDeckTopRatio = 0.8;
+
+    /// <summary>덱에 동시에 표시하는 최대 노트 수. 초과분은 최근 노트만 표시. Configure로 변경</summary>
+    public static int MaxDeckNotes { get; private set; } = DefaultMaxDeckNotes;
+
+    /// <summary>새 노트 추가 버튼 크기</summary>
+    public const double PlusButtonSize = 30;
+
+    /// <summary>덱 하단과 추가 버튼 사이 간격</summary>
+    public const double PlusGap = 4;
+
+    /// <summary>화면 높이 대비 덱 시작 위치 비율. Configure로 변경</summary>
+    public static double DeckTopRatio { get; private set; } = DefaultDeckTopRatio;
+
+    /// <summary>설정값 적용. 범위를 벗어나면 허용 범위로 보정</summary>
+    public static void Configure(int maxDeckNotes, double deckTopRatio)
+    {
+        MaxDeckNotes = Math.Clamp(maxDeckNotes, MinMaxDeckNotes, MaxMaxDeckNotes);
+        DeckTopRatio = Math.Clamp(deckTopRatio, 0, MaxDeckTopRatio);
+    }
+
+    /// <summary>덱 블록 아래에 남겨 두는 최소 여백. 모니터 바닥에 붙지 않도록 함</summary>
+    public const double DeckBottomMargin = 40;
+
+    /// <summary>팬아웃 중 마우스를 붙잡아 두는 보이지 않는 호버 영역 폭. 탭 노출 폭보다 약간 넓게</summary>
+    public static double HoverZoneWidth => PeekWidth + 12;
+
+    /// <summary>덱이 가득 찼을 때 카드 영역 높이. 노트 수와 무관하게 고정</summary>
+    public static double DeckCapacityHeight => MaxDeckNotes * (CardHeight + CardGap);
+
+    /// <summary>덱 카드 영역 + 추가 버튼까지 포함한 전체 높이</summary>
+    public static double DeckBlockHeight => DeckCapacityHeight + PlusGap + PlusButtonSize;
+
+    /// <summary>추가 버튼 상단 위치. 덱 상단 기준으로 항상 같은 자리</summary>
+    public static double PlusTop(double deckTop) => deckTop + DeckCapacityHeight + PlusGap;
+
+    /// <summary>확장 상태: 카드가 완전히 화면 안에 위치</summary>
+    public static double ExpandedOffset => 0;
+
+    /// <summary>팬아웃 상태: PeekWidth 만큼만 보이도록 오른쪽으로 밀어냄</summary>
+    public static double FannedOffset => CardWidth - PeekWidth;
+
+    /// <summary>휴면 상태: 카드가 창 밖으로 완전히 나감</summary>
+    public static double DormantOffset => WindowWidth;
+
+    /// <summary>작업 영역 우측 가장자리에 세로로 붙는 창 영역 계산</summary>
+    public static (double Left, double Top, double Width, double Height) WindowRect(
+        double workLeft, double workTop, double workWidth, double workHeight) =>
+        (workLeft + workWidth - WindowWidth, workTop, WindowWidth, workHeight);
+
+    /// <summary>덱의 상단 위치. 하단 여백을 확보하되 화면 아래로 넘치지 않도록 보정</summary>
+    public static double DeckTop(double workHeight, double deckHeight)
+    {
+        var top = workHeight * DeckTopRatio;
+        var max = Math.Max(0, workHeight - deckHeight - DeckBottomMargin);
+        return Math.Clamp(top, 0, max);
+    }
+}

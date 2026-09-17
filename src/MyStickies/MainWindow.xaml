@@ -1,0 +1,100 @@
+<Window x:Class="MyStickies.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctl="clr-namespace:MyStickies.Controls"
+        Title="MyStickies"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        Topmost="True" ShowInTaskbar="False" ShowActivated="False"
+        ResizeMode="NoResize" WindowStartupLocation="Manual"
+        UseLayoutRounding="True"
+        FontFamily="{DynamicResource NoteFont}"
+        MouseEnter="Window_MouseEnter" MouseLeave="Window_MouseLeave"
+        PreviewMouseMove="Window_PreviewMouseMove" PreviewMouseLeftButtonUp="Window_PreviewMouseLeftButtonUp"
+        Deactivated="Window_Deactivated">
+
+    <Window.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="메모 관리" Click="AllNotes_Click"/>
+            <MenuItem Header="설정" Click="Settings_Click"/>
+            <Separator/>
+            <MenuItem Header="종료" Click="Exit_Click"/>
+        </ContextMenu>
+    </Window.ContextMenu>
+
+    <Grid x:Name="Root">
+
+        <!-- 휴면 상태: 우측 가장자리의 얇은 알약. 노트 색상 점만 표시 -->
+        <Border x:Name="Pill"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                Width="22" Padding="6,8"
+                CornerRadius="11,0,0,11"
+                Background="#993A3A48">
+            <Grid IsHitTestVisible="False">
+                <ItemsControl ItemsSource="{Binding DeckNotes}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width="10" Height="30" Margin="0,3"
+                                    CornerRadius="5"
+                                    Background="{Binding ColorHex, Converter={StaticResource HexToBrush}}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <!-- 메모가 한 장도 없을 때: 빈 점 하나로 알약 위치를 알림 -->
+                <Border Width="10" Height="10" Margin="0,3" CornerRadius="5" Background="#88FFFFFF"
+                        VerticalAlignment="Top">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DeckNotes.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- 팬아웃 중 카드와 + 버튼 사이 빈 공간에서도 마우스가 창 안에 머물도록 하는 투명 호버 영역.
+             알파 1의 배경은 눈에 보이지 않지만 히트 테스트 대상이 되어 MouseLeave가 발생하지 않음 -->
+        <Border x:Name="HoverZone"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                Width="88" Background="#01000000"
+                IsHitTestVisible="False"/>
+
+        <!-- 팬아웃/확장 상태: 노트 카드 덱 -->
+        <StackPanel x:Name="Deck"
+                    HorizontalAlignment="Right" VerticalAlignment="Top">
+            <ItemsControl x:Name="TabList" ItemsSource="{Binding DeckNotes}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ctl:NoteTab MouseEnter="Tab_MouseEnter" MouseLeave="Tab_MouseLeave"
+                                     PreviewMouseLeftButtonDown="Tab_PreviewMouseLeftButtonDown"
+                                     EditStarted="Tab_EditStarted" EditEnded="Tab_EditEnded"
+                                     DeleteRequested="Tab_DeleteRequested"
+                                     ArchiveRequested="Tab_ArchiveRequested"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <!-- 새 노트 추가 버튼: 덱과 분리된 고정 오버레이. 노트 수와 무관하게 같은 자리 -->
+        <Border x:Name="PlusButton"
+                Width="30" Height="30" Margin="0,0,12,0"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                CornerRadius="15" Background="#F4F4F6"
+                Cursor="Hand"
+                MouseLeftButtonUp="PlusButton_Click">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
+            </Border.Effect>
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="PlusTranslate" X="80"/>
+            </Border.RenderTransform>
+            <TextBlock Text="+" FontSize="18" Foreground="#55555F"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Margin="0,-2,0,0"/>
+        </Border>
+    </Grid>
+</Window>
