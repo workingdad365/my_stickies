@@ -48,3 +48,6 @@ desktop.ini
 
 # Claude Code 로컬 설정
 .claude/settings.local.json
+
+# 계획 문서 (로컬 전용)
+PLAN.md
