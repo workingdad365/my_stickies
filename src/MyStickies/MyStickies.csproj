@@ -11,9 +11,9 @@
     <RootNamespace>MyStickies</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>MyStickies</AssemblyName>
-    <Version>1.0.4</Version>
-    <AssemblyVersion>1.0.4.0</AssemblyVersion>
-    <FileVersion>1.0.4.0</FileVersion>
+    <Version>1.0.5</Version>
+    <AssemblyVersion>1.0.5.0</AssemblyVersion>
+    <FileVersion>1.0.5.0</FileVersion>
     <Product>My Stickies</Product>
     <Company>drasys</Company>
     <Description>Sticky notes docked to the edge of your screen</Description>

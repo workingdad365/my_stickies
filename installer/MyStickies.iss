@@ -3,7 +3,7 @@
 ; 사용자별 설치 (관리자 권한 불필요): %LocalAppData%\Programs\MyStickies
 
 #ifndef AppVersion
-  #define AppVersion "1.0.4"
+  #define AppVersion "1.0.5"
 #endif
 #ifndef PublishDir
   #define PublishDir "publish"

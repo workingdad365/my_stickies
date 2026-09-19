@@ -98,6 +98,27 @@ public static class DeckGeometry
     /// </summary>
     public static double DeckBlockHeightFor(int noteCount) => DeckHeightFor(noteCount) + PlusGap + PlusButtonSize;
 
+    public const double BookmarkControlHeight = 20;
+
+    public static double BookmarkBlockHeightFor(int noteCount)
+    {
+        var count = Math.Clamp(noteCount, 0, MaxDeckNotes);
+        return count == 0 ? 32 : 16 + count * 36 + BookmarkControlHeight * 2;
+    }
+
+    public static double BookmarkTop(double workHeight, int noteCount) =>
+        DeckTop(workHeight, BookmarkBlockHeightFor(noteCount));
+
+    public static double BookmarkCenterRatioForTop(double workHeight, int noteCount, double top)
+    {
+        if (workHeight <= 0) return DeckCenterRatio;
+        var blockHeight = BookmarkBlockHeightFor(noteCount);
+        var maxTop = Math.Max(DeckTopMargin, workHeight - blockHeight - DeckBottomMargin);
+        var clampedTop = Math.Clamp(top, DeckTopMargin, maxTop);
+        return Math.Clamp((clampedTop + blockHeight / 2) / workHeight,
+            MinDeckCenterRatio, MaxDeckCenterRatio);
+    }
+
     /// <summary>추가 버튼 상단 위치(팬아웃 상태 기준). 실제 표시 중인 마지막 노트 바로 아래. 배치 검증에 사용</summary>
     public static double PlusTop(double deckTop, int noteCount) => deckTop + DeckHeightFor(noteCount) + PlusGap;
 

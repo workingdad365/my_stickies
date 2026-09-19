@@ -79,6 +79,51 @@ public class DeckConfigureTests : IDisposable
 {
     public void Dispose() => DeckGeometry.Configure(DeckGeometry.DefaultMaxDeckNotes, DeckGeometry.DefaultDeckCenterRatio);
 
+    [Theory]
+    [InlineData(0, 32)]
+    [InlineData(1, 92)]
+    [InlineData(5, 236)]
+    [InlineData(-1, 32)]
+    [InlineData(100, 236)]
+    public void BookmarkBlockHeight_IncludesControlsOnlyWithNotes(int count, double expected)
+    {
+        Assert.Equal(expected, DeckGeometry.BookmarkBlockHeightFor(count));
+    }
+
+    [Fact]
+    public void BookmarkDrag_MovesEvenWhenExpandedDeckFillsWorkArea()
+    {
+        DeckGeometry.Configure(8, 0.5);
+        var initialTop = DeckGeometry.BookmarkTop(1032, 8);
+        var ratio = DeckGeometry.BookmarkCenterRatioForTop(1032, 8, initialTop + 100);
+        DeckGeometry.Configure(8, ratio);
+
+        Assert.Equal(initialTop + 100, DeckGeometry.BookmarkTop(1032, 8), 6);
+        Assert.Equal(DeckGeometry.DeckTopMargin,
+            DeckGeometry.DeckTop(1032, DeckGeometry.DeckBlockHeightFor(8)));
+    }
+
+    [Theory]
+    [InlineData(-1000)]
+    [InlineData(2000)]
+    public void BookmarkDrag_ClampsControlsInsideWorkArea(double requestedTop)
+    {
+        var ratio = DeckGeometry.BookmarkCenterRatioForTop(600, 5, requestedTop);
+        DeckGeometry.Configure(5, ratio);
+        var top = DeckGeometry.BookmarkTop(600, 5);
+
+        Assert.InRange(ratio, DeckGeometry.MinDeckCenterRatio, DeckGeometry.MaxDeckCenterRatio);
+        Assert.InRange(top, DeckGeometry.DeckTopMargin,
+            600 - DeckGeometry.BookmarkBlockHeightFor(5) - DeckGeometry.DeckBottomMargin);
+    }
+
+    [Fact]
+    public void BookmarkDrag_ZeroWorkHeightKeepsCurrentRatio()
+    {
+        Assert.Equal(DeckGeometry.DeckCenterRatio,
+            DeckGeometry.BookmarkCenterRatioForTop(0, 1, 100));
+    }
+
     [Fact]
     public void Configure_AppliesValuesWithinRange()
     {

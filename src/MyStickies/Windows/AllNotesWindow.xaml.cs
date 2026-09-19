@@ -34,6 +34,7 @@ public partial class AllNotesWindow : Window
     {
         _store = store;
         InitializeComponent();
+        Title = $"{AppInfo.Name} v{AppInfo.Version} - 메모 관리";
 
         _view = new CollectionViewSource { Source = store.Notes }.View;
         _view.SortDescriptions.Add(new SortDescription(nameof(Note.UpdatedAt), ListSortDirection.Descending));

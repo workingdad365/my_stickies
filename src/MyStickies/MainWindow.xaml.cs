@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -53,6 +54,10 @@ public partial class MainWindow : Window
     private NoteTab? _pressedTab;
     private Point _pressPoint;
     private NoteTab? _draggingTab;
+    private bool _movingBookmark;
+    private bool _bookmarkPositionChanged;
+    private double _bookmarkDragStartTop;
+    private double _bookmarkDragStartMouseY;
     private readonly AppSettings _settings;
     private readonly NoteStore _store;
     private bool _reloadPending;
@@ -532,7 +537,7 @@ public partial class MainWindow : Window
         var count = DeckNotes.Count;
         var deckTop = DeckGeometry.DeckTop(wa.Height, DeckGeometry.DeckBlockHeightFor(count));
         Deck.Margin = new Thickness(0, deckTop, 0, 0);
-        Bookmark.Margin = new Thickness(0, deckTop, 0, 0);
+        Bookmark.Margin = new Thickness(0, DeckGeometry.BookmarkTop(wa.Height, count), 0, 0);
 
         HoverZone.Width = DeckGeometry.HoverZoneWidth;
         HoverZone.Height = DeckGeometry.DeckBlockHeightFor(count);
@@ -617,6 +622,7 @@ public partial class MainWindow : Window
     /// <summary>휴면 -> 팬아웃. 탭이 순차적으로 슬라이드되어 나옴</summary>
     private void FanOut()
     {
+        if (_movingBookmark) return;
         _fanned = true;
 
         HoverZone.IsHitTestVisible = true;
@@ -637,7 +643,7 @@ public partial class MainWindow : Window
     /// <summary>팬아웃 -> 휴면. 전부 화면 밖으로 밀어내고 책갈피 표시. 편집 중에는 동작하지 않음</summary>
     private void Collapse()
     {
-        if (_editingTab is not null) return;
+        if (_editingTab is not null || _movingBookmark) return;
 
         _fanned = false;
         HoverZone.IsHitTestVisible = false;
@@ -662,13 +668,61 @@ public partial class MainWindow : Window
     private void Window_MouseEnter(object sender, MouseEventArgs e)
     {
         _collapseTimer.Stop();
-        if (!_fanned)
+    }
+
+    private void BookmarkBody_MouseEnter(object sender, MouseEventArgs e)
+    {
+        if (!_fanned && !_movingBookmark)
             FanOut();
+    }
+
+    private void BookmarkHandle_DragStarted(object sender, DragStartedEventArgs e)
+    {
+        _collapseTimer.Stop();
+        _pressedTab = null;
+        _movingBookmark = true;
+        _bookmarkPositionChanged = false;
+        _bookmarkDragStartTop = Bookmark.Margin.Top;
+        _bookmarkDragStartMouseY = Mouse.GetPosition(this).Y;
+        e.Handled = true;
+    }
+
+    private void BookmarkHandle_DragDelta(object sender, DragDeltaEventArgs e)
+    {
+        if (!_movingBookmark) return;
+        var top = _bookmarkDragStartTop + Mouse.GetPosition(this).Y - _bookmarkDragStartMouseY;
+        var ratio = DeckGeometry.BookmarkCenterRatioForTop(Height, DeckNotes.Count, top);
+        if (Math.Abs(ratio - DeckGeometry.DeckCenterRatio) > 0.000001)
+        {
+            _bookmarkPositionChanged = true;
+            DeckGeometry.Configure(_settings.DeckMaxNotes, ratio);
+            PlaceWindow();
+        }
+        e.Handled = true;
+    }
+
+    private void BookmarkHandle_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        _movingBookmark = false;
+        if (_bookmarkPositionChanged)
+        {
+            _settings.DeckCenterPercent = (int)Math.Round(DeckGeometry.DeckCenterRatio * 100);
+            _settings.Save(AppSettings.SettingsPath);
+            ApplyDeckSettings();
+            PlaceWindow();
+        }
+        e.Handled = true;
+    }
+
+    private void HideBookmark_Click(object sender, RoutedEventArgs e)
+    {
+        SetHiddenByUser(true);
+        e.Handled = true;
     }
 
     private void Window_MouseLeave(object sender, MouseEventArgs e)
     {
-        if (_fanned && _editingTab is null && _draggingTab is null)
+        if (_fanned && _editingTab is null && _draggingTab is null && !_movingBookmark)
             _collapseTimer.Start();
     }
 
