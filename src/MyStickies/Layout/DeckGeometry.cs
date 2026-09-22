@@ -81,6 +81,13 @@ public static class DeckGeometry
     /// <summary>팬아웃 중 마우스를 붙잡아 두는 보이지 않는 호버 영역 폭. 탭 노출 폭보다 약간 넓게</summary>
     public static double HoverZoneWidth => PeekWidth + 12;
 
+    /// <summary>추가 버튼 아래에서 커서가 조금 벗어나도 팬아웃을 유지하는 여백</summary>
+    public const double HoverZoneBottomPadding = 16;
+
+    /// <summary>실제 덱 높이와 하단 여백을 포함하며, 이전 높이를 넘기면 카드 축소 중에도 이동 경로를 유지함</summary>
+    public static double HoverZoneHeightFor(double deckHeight, double previousHeight = 0) =>
+        Math.Max(deckHeight + HoverZoneBottomPadding, previousHeight);
+
     /// <summary>덱이 가득 찼을 때 카드 영역 높이. 노트 수와 무관하게 고정</summary>
     public static double DeckCapacityHeight => MaxDeckNotes * (CardHeight + CardGap);
 

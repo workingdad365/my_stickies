@@ -179,6 +179,45 @@ public class ExpandedHeightTests
 
 public class DeckCapacityTests
 {
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(1, 50)]
+    [InlineData(5, 330)]
+    public void HoverZone_CoversButtonAndSpaceBelowAfterCardExpansion(int noteCount, double extraHeight)
+    {
+        var buttonBottom = DeckGeometry.DeckBlockHeightFor(noteCount) + extraHeight;
+        var hoverHeight = DeckGeometry.HoverZoneHeightFor(buttonBottom);
+
+        Assert.True(hoverHeight > buttonBottom + 8, "추가 버튼 아래로 커서가 벗어나도 호버 영역 안에 있어야 함");
+    }
+
+    [Fact]
+    public void HoverZone_KeepsPreviousButtonPositionCoveredWhileCardsShrink()
+    {
+        var collapsedHeight = DeckGeometry.DeckBlockHeightFor(3);
+        var expandedHeight = collapsedHeight + DeckGeometry.MaxExpandedHeight - DeckGeometry.CardHeight;
+        var hoverHeight = DeckGeometry.HoverZoneHeightFor(expandedHeight);
+
+        foreach (var height in new[] { expandedHeight - 50, expandedHeight - 200, collapsedHeight })
+        {
+            hoverHeight = DeckGeometry.HoverZoneHeightFor(height, hoverHeight);
+            Assert.True(hoverHeight > expandedHeight + 8, "버튼이 위로 이동해도 이전 위치의 커서를 보호해야 함");
+        }
+
+        Assert.Equal(DeckGeometry.HoverZoneHeightFor(expandedHeight), hoverHeight);
+    }
+
+    [Fact]
+    public void HoverZone_NewFanOutReleasesPreviousExtraArea()
+    {
+        var deckHeight = DeckGeometry.DeckBlockHeightFor(1);
+        var previousHeight = DeckGeometry.HoverZoneHeightFor(deckHeight + 330);
+        var newHeight = DeckGeometry.HoverZoneHeightFor(deckHeight);
+
+        Assert.True(newHeight < previousHeight);
+        Assert.Equal(deckHeight + DeckGeometry.HoverZoneBottomPadding, newHeight);
+    }
+
     [Fact]
     public void DeckBlockHeight_IsIndependentOfNoteCount()
     {

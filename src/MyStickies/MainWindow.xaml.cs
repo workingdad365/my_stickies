@@ -64,6 +64,7 @@ public partial class MainWindow : Window
     private TrayIcon? _tray;
     private AllNotesWindow? _allNotesWindow;
     private bool _fanned;
+    private double _maxHoverZoneHeight;
     private NoteTab? _expandedTab;
     private NoteTab? _editingTab;
 
@@ -540,8 +541,18 @@ public partial class MainWindow : Window
         Bookmark.Margin = new Thickness(0, DeckGeometry.BookmarkTop(wa.Height, count), 0, 0);
 
         HoverZone.Width = DeckGeometry.HoverZoneWidth;
-        HoverZone.Height = DeckGeometry.DeckBlockHeightFor(count);
         HoverZone.Margin = new Thickness(0, deckTop, 0, 0);
+        UpdateHoverZoneHeight();
+    }
+
+    private void Deck_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateHoverZoneHeight();
+
+    /// <summary>버튼 아래 여백까지 호버 영역을 늘리고, 팬아웃 중에는 축소 전 이동 경로도 유지함</summary>
+    private void UpdateHoverZoneHeight()
+    {
+        var deckHeight = Math.Max(Deck.ActualHeight, DeckGeometry.DeckBlockHeightFor(DeckNotes.Count));
+        _maxHoverZoneHeight = DeckGeometry.HoverZoneHeightFor(deckHeight, _fanned ? _maxHoverZoneHeight : 0);
+        HoverZone.Height = _maxHoverZoneHeight;
     }
 
     /// <summary>활성 노트 중 최근 MaxDeckNotes 개만 덱에 남김. 기존 탭은 재생성하지 않고 차이만 반영</summary>
@@ -625,6 +636,8 @@ public partial class MainWindow : Window
         if (_movingBookmark) return;
         _fanned = true;
 
+        _maxHoverZoneHeight = 0;
+        UpdateHoverZoneHeight();
         HoverZone.IsHitTestVisible = true;
         Bookmark.IsHitTestVisible = false;
         Bookmark.BeginAnimation(OpacityProperty, new DoubleAnimation(0, BookmarkFade));

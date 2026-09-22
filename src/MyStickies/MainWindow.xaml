@@ -109,7 +109,8 @@
 
         <!-- 팬아웃/확장 상태: 노트 카드 덱 -->
         <StackPanel x:Name="Deck"
-                    HorizontalAlignment="Right" VerticalAlignment="Top">
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    SizeChanged="Deck_SizeChanged">
             <ItemsControl x:Name="TabList" ItemsSource="{Binding DeckNotes}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
