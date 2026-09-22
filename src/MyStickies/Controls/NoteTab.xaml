@@ -36,7 +36,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- 세로 라벨: 아래에서 위로 읽히도록 270도 회전 -->
-            <TextBlock Grid.Column="0"
+            <TextBlock x:Name="SideLabel" Grid.Column="0"
                        Text="{Binding Label}"
                        FontSize="12" FontWeight="SemiBold"
                        Foreground="{StaticResource NoteLabelBrush}"
@@ -65,7 +65,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- 제목: 읽기용 TextBlock과 편집용 TextBox를 겹쳐 두고 전환 -->
-                <Grid Grid.Row="0" Margin="0,0,76,0">
+                <Grid Grid.Row="0" Margin="0,0,102,0">
                     <TextBlock x:Name="TitleText"
                                Text="{Binding Title}"
                                FontSize="{DynamicResource NoteTitleSize}" FontWeight="SemiBold"
@@ -82,12 +82,15 @@
 
                 <!-- 본문 -->
                 <Grid Grid.Row="1" Margin="0,6,0,0">
+                    <ScrollViewer x:Name="BodyScroll" VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
                     <TextBlock x:Name="BodyText"
                                Text="{Binding Body}"
                                FontSize="{DynamicResource NoteBodySize}" LineHeight="{DynamicResource NoteBodyLineHeight}"
                                Foreground="{StaticResource NoteBodyBrush}"
                                TextWrapping="Wrap"
                                Cursor="IBeam"/>
+                    </ScrollViewer>
                     <TextBox x:Name="BodyBox"
                              Style="{StaticResource EditBox}"
                              FontSize="{DynamicResource NoteBodySize}"
@@ -103,9 +106,23 @@
                             Orientation="Horizontal" Margin="0,8,0,0"
                             Visibility="Collapsed"/>
 
+                <!-- 고정 버튼: 독립 창으로 분리하거나 덱으로 복귀함 -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal"
+                            HorizontalAlignment="Right" VerticalAlignment="Top">
+                <Border x:Name="PinButton" Grid.Row="0"
+                        Width="22" Height="22" Margin="0,0,4,0"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        CornerRadius="11" Background="#2E000000"
+                        Cursor="Hand" ToolTip="고정하여 따로 띄우기"
+                        AutomationProperties.Name="메모 고정"
+                        MouseLeftButtonUp="Pin_MouseLeftButtonUp">
+                    <TextBlock Text="&#xE718;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                               Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
                 <!-- 숨김 버튼: 삭제 버튼 왼쪽 -->
                 <Border x:Name="CompleteButton" Grid.Row="0"
-                        Width="22" Height="22" Margin="0,0,26,0"
+                        Width="22" Height="22" Margin="0,0,4,0"
                         HorizontalAlignment="Right" VerticalAlignment="Top"
                         CornerRadius="11" Background="#2E000000"
                         Cursor="Hand" ToolTip="숨김"
@@ -126,6 +143,7 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                Margin="0,-3,0,0"/>
                 </Border>
+                </StackPanel>
             </Grid>
         </Grid>
     </Border>

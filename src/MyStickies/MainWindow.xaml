@@ -118,7 +118,8 @@
                                      PreviewMouseLeftButtonDown="Tab_PreviewMouseLeftButtonDown"
                                      EditStarted="Tab_EditStarted" EditEnded="Tab_EditEnded"
                                      DeleteRequested="Tab_DeleteRequested"
-                                     ArchiveRequested="Tab_ArchiveRequested"/>
+                                     ArchiveRequested="Tab_ArchiveRequested"
+                                     PinRequested="Tab_PinRequested"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

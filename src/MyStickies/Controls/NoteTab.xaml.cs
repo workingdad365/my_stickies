@@ -35,6 +35,16 @@ public partial class NoteTab : UserControl
     public static readonly RoutedEvent DeleteRequestedEvent = EventManager.RegisterRoutedEvent(
         nameof(DeleteRequested), RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(NoteTab));
 
+    public static readonly RoutedEvent PinRequestedEvent = EventManager.RegisterRoutedEvent(
+        nameof(PinRequested), RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(NoteTab));
+
+    /// <summary>고정 또는 고정 해제 요청</summary>
+    public event RoutedEventHandler PinRequested
+    {
+        add => AddHandler(PinRequestedEvent, value);
+        remove => RemoveHandler(PinRequestedEvent, value);
+    }
+
     /// <summary>편집 모드 진입. 창 활성화 등 상위에서 처리할 준비를 요청</summary>
     public event RoutedEventHandler EditStarted
     {
@@ -88,7 +98,25 @@ public partial class NoteTab : UserControl
         InitializeComponent();
         BuildColorDots();
         _deleteArmTimer.Tick += (_, _) => DisarmDelete();
+        Unloaded += (_, _) => DisarmDelete();
     }
+
+    /// <summary>독립 창 표시 설정. 접힘 없이 본문을 표시하고 고정 해제 버튼으로 전환함</summary>
+    public void ConfigureFloating()
+    {
+        Margin = new Thickness(0);
+        Card.CornerRadius = new CornerRadius(16);
+        PinButton.Background = HexToBrushConverter.Brush("#80404060");
+        PinButton.ToolTip = "고정 해제하여 북마크로 돌려놓기";
+        System.Windows.Automation.AutomationProperties.SetName(PinButton, "메모 고정 해제");
+        SideLabel.Cursor = Cursors.SizeAll;
+        SideLabel.ToolTip = "왼쪽 띠를 끌어서 이동";
+        JumpTo(0);
+        SetExpanded(true);
+    }
+
+    /// <summary>다른 창에서 바뀐 내용에 맞춰 펼친 카드 높이를 다시 계산함</summary>
+    public void RefreshExpandedHeight() => UpdateExpandedHeight();
 
     /// <summary>삭제 버튼을 확인 상태로 전환: 빨간 배경에 "삭제" 표시</summary>
     private void ArmDelete()
@@ -240,6 +268,7 @@ public partial class NoteTab : UserControl
         var target = focusTitle ? TitleBox : BodyBox;
         Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
         {
+            if (!IsEditing || !IsVisible) return;
             Keyboard.Focus(target);
             target.CaretIndex = target.Text.Length;
         });
@@ -274,7 +303,7 @@ public partial class NoteTab : UserControl
     private void ShowEditors(bool editing)
     {
         TitleText.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
-        BodyText.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
+        BodyScroll.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
         TitleBox.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
         BodyBox.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
         ColorRow.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
@@ -312,6 +341,13 @@ public partial class NoteTab : UserControl
     {
         e.Handled = true;
         RaiseEvent(new RoutedEventArgs(ArchiveRequestedEvent, this));
+    }
+
+    private void Pin_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        DisarmDelete();
+        RaiseEvent(new RoutedEventArgs(PinRequestedEvent, this));
     }
 
     /// <summary>공통 단축키: Esc 취소, Ctrl+Enter 또는 Ctrl+S 저장. 처리했으면 true</summary>

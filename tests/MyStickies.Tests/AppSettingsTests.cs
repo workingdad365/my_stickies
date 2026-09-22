@@ -43,6 +43,35 @@ public sealed class AppSettingsTests : IDisposable
     }
 
     [Fact]
+    public void Save_ThenLoad_RestoresPinnedNotesAndPositionsAcrossDatabases()
+    {
+        var path = Path.Combine(_dir, "settings.json");
+        var settings = new AppSettings
+        {
+            PinnedNotes =
+            [
+                new PinnedNoteState(@"C:\Notes\my_stickies.db", Guid.NewGuid(), -800, 240),
+                new PinnedNoteState(@"D:\Other\my_stickies.db", Guid.NewGuid(), 640, 100),
+            ],
+        };
+        settings.Save(path);
+
+        var loaded = AppSettings.Load(path);
+        Assert.NotNull(loaded);
+        Assert.Equal(settings.PinnedNotes, loaded.PinnedNotes);
+    }
+
+    [Fact]
+    public void Load_OldSettingsWithoutPinsStartsWithEmptyList()
+    {
+        Directory.CreateDirectory(_dir);
+        var path = Path.Combine(_dir, "settings.json");
+        File.WriteAllText(path, """{"DataDirectory":"C:\\Notes"}""");
+
+        Assert.Empty(AppSettings.Load(path)!.PinnedNotes);
+    }
+
+    [Fact]
     public void PathFor_AppendsDbFileName()
     {
         Assert.Equal(Path.Combine(@"D:\Sync", NoteRepository.DbFileName), NoteRepository.PathFor(@"D:\Sync"));

@@ -44,6 +44,9 @@ public sealed class AppSettings
     /// <summary>"이 버전 건너뛰기"를 누른 릴리스 태그. 같은 버전은 자동 알림에서 제외</summary>
     public string? SkippedVersion { get; set; }
 
+    /// <summary>DB별 고정 메모와 독립 창 위치. PC별 로컬 설정으로 보관함</summary>
+    public List<PinnedNoteState> PinnedNotes { get; set; } = [];
+
     /// <summary>이 PC의 앱 로컬 폴더: %LocalAppData%\MyStickies</summary>
     public static string LocalDirectory => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MyStickies");
@@ -63,6 +66,7 @@ public sealed class AppSettings
             var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path));
             if (settings is null || string.IsNullOrWhiteSpace(settings.DataDirectory))
                 return null;
+            settings.PinnedNotes ??= [];
             return settings;
         }
         catch (JsonException)

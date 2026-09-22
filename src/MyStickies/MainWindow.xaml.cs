@@ -83,6 +83,7 @@ public partial class MainWindow : Window
 
         InitializeComponent();
         DataContext = this;
+        InitializeFloatingNotes();
 
         SyncDeckNotes();
         Notes.CollectionChanged += (_, _) => SyncDeckNotes();
@@ -108,6 +109,7 @@ public partial class MainWindow : Window
         Loaded += (_, _) =>
         {
             PlaceWindow();
+            RestorePinnedNotes();
             InitTray();
             StartUpdateChecks();
             // 시작 인자 --all-notes: 메모 관리 창을 바로 염 (바로 가기, 검증용)
@@ -121,6 +123,7 @@ public partial class MainWindow : Window
         {
             _relayoutTimer.Stop();
             PlaceWindow();
+            foreach (var window in _floatingNotes.Values) window.KeepOnScreen();
         };
         // 해상도/모니터 구성 변경, 작업 표시줄 위치·크기 변경(작업 영역), 모니터 배율(DPI) 변경 모두 재배치
         SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
@@ -328,6 +331,7 @@ public partial class MainWindow : Window
         _editingTab?.EndEdit();
 
         var newDb = NoteRepository.PathFor(newDir);
+        foreach (var window in _floatingNotes.Values.ToArray()) window.EndEdit();
         if (!File.Exists(newDb) && Notes.Count > 0)
         {
             var answer = MessageBox.Show(
@@ -342,15 +346,18 @@ public partial class MainWindow : Window
             }
         }
 
+        CloseFloatingNotes();
         _store.SwitchTo(new NoteRepository(newDb));
         _settings.DataDirectory = newDir;
         _settings.Save(AppSettings.SettingsPath);
+        RestorePinnedNotes();
     }
 
     /// <summary>다른 PC 등 외부에서 DB 파일이 바뀜. 편집 중이면 편집이 끝난 뒤 다시 읽음</summary>
     private void OnExternalChange()
     {
-        if (_editingTab is not null)
+        if (_editingTab is not null || _floatingNotes.Values.Any(w => w.IsEditing)
+            || _closingFloatingNotes || _shuttingDown)
         {
             _reloadPending = true;
             return;
@@ -558,8 +565,11 @@ public partial class MainWindow : Window
     /// <summary>활성 노트 중 최근 MaxDeckNotes 개만 덱에 남김. 기존 탭은 재생성하지 않고 차이만 반영</summary>
     private void SyncDeckNotes()
     {
+        if (_shuttingDown) return;
+        QueueFloatingNotesSync();
         var countBefore = DeckNotes.Count;
-        var target = Notes.Where(n => !n.IsArchived).TakeLast(DeckGeometry.MaxDeckNotes).ToList();
+        var target = Notes.Where(n => !n.IsArchived && !_floatingNotes.ContainsKey(n.Id))
+                          .TakeLast(DeckGeometry.MaxDeckNotes).ToList();
 
         for (var i = DeckNotes.Count - 1; i >= 0; i--)
         {
