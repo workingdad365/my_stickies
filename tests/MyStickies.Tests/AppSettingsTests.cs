@@ -42,6 +42,30 @@ public sealed class AppSettingsTests : IDisposable
         Assert.Null(AppSettings.Load(path));
     }
 
+    [Theory]
+    [InlineData("ko")]
+    [InlineData("en")]
+    public void Language_RoundTripsWithoutChangingNotesLocationOrPins(string language)
+    {
+        var path = Path.Combine(_dir, "settings.json");
+        var settings = new AppSettings { Language = language, DataDirectory = @"D:\Notes" };
+        settings.PinnedNotes.Add(new PinnedNoteState(@"D:\Notes\my_stickies.db", Guid.NewGuid(), 100, 200));
+        settings.Save(path);
+        var restored = AppSettings.Load(path)!;
+        Assert.Equal(language, restored.Language);
+        Assert.Equal(settings.DataDirectory, restored.DataDirectory);
+        Assert.Equal(settings.PinnedNotes, restored.PinnedNotes);
+    }
+
+    [Fact]
+    public void ExistingSettingsWithoutLanguage_KeepKorean()
+    {
+        Directory.CreateDirectory(_dir);
+        var path = Path.Combine(_dir, "settings.json");
+        File.WriteAllText(path, """{"DataDirectory":"C:\\Notes"}""");
+        Assert.Equal("ko", AppSettings.Load(path)!.Language);
+    }
+
     [Fact]
     public void Save_ThenLoad_RestoresPinnedNotesAndPositionsAcrossDatabases()
     {

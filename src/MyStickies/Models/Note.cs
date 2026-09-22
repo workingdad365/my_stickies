@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using MyStickies.Localization;
 
 namespace MyStickies.Models;
 
@@ -78,7 +79,7 @@ public sealed class Note : INotifyPropertyChanged
     public string Label => Title.ToUpperInvariant();
 
     /// <summary>제목 미입력 시 사용하는 기본 제목. 형식: 새 메모 (yyyy-MM-dd HH:mm)</summary>
-    public static string DefaultTitle(DateTime now) => $"새 메모 ({now:yyyy-MM-dd HH:mm})";
+    public static string DefaultTitle(DateTime now) => Strings.Get("DefaultTitle", now);
 
     /// <summary>제목이 비어 있으면 기본 제목으로 채움</summary>
     public void EnsureTitle(DateTime now)

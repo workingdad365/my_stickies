@@ -1,11 +1,12 @@
 <Window x:Class="MyStickies.Windows.AllNotesWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:MyStickies.Localization"
         xmlns:conv="clr-namespace:MyStickies.Converters"
-        Title="My Stickies - 메모 관리"
+        Title="{loc:Text ManageNotes}"
         Width="960" Height="620" MinWidth="720" MinHeight="420"
         WindowStartupLocation="CenterScreen"
-        Icon="pack://application:,,,/Assets/app.ico"
+        Icon="pack://application:,,,/MyStickies;component/Assets/app.ico"
         Background="#F7F6F2"
         FontFamily="{DynamicResource NoteFont}"
         UseLayoutRounding="True">
@@ -93,10 +94,10 @@
                            FontSize="11" Foreground="{StaticResource MutedBrush}">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
-                            <Setter Property="Text" Value="활성"/>
+                            <Setter Property="Text" Value="{loc:Text Active}"/>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsArchived}" Value="True">
-                                    <Setter Property="Text" Value="숨김"/>
+                                    <Setter Property="Text" Value="{loc:Text Hidden}"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -105,7 +106,7 @@
 
                 <TextBlock Grid.Column="3" Margin="10,0,0,0" VerticalAlignment="Center"
                            FontSize="11" Foreground="{StaticResource MutedBrush}"
-                           Text="{Binding UpdatedAt, Converter={StaticResource RelativeTime}}"/>
+                           Text="{loc:Text RelativeTime, Value={Binding UpdatedAt}, Relative=True}"/>
             </Grid>
         </DataTemplate>
 
@@ -148,12 +149,16 @@
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Margin="0,0,0,16">
-                <TextBlock Text="메모 관리" FontSize="20" FontWeight="SemiBold" Foreground="#23232B"
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="{loc:Text ManageNotes}" FontSize="20" FontWeight="SemiBold" Foreground="#23232B"
                            VerticalAlignment="Center"/>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="가져오기..." Style="{StaticResource SoftButton}" Click="Import_Click"/>
-                    <Button Content="전체 내보내기..." Style="{StaticResource SoftButton}" Click="ExportAll_Click"/>
-                    <Button Content="새 메모" Style="{StaticResource SoftButton}" Click="NewNote_Click"/>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="-6,8,0,0">
+                    <Button Content="{loc:Text ImportButton}" Style="{StaticResource SoftButton}" Click="Import_Click"/>
+                    <Button Content="{loc:Text ExportAllButton}" Style="{StaticResource SoftButton}" Click="ExportAll_Click"/>
+                    <Button Content="{loc:Text NewNote}" Style="{StaticResource SoftButton}" Click="NewNote_Click"/>
                 </StackPanel>
             </Grid>
 
@@ -162,7 +167,7 @@
                 <Grid>
                     <TextBox x:Name="SearchBox" Background="Transparent" BorderThickness="0" Padding="0"
                              FontSize="13" Foreground="#23232B" TextChanged="SearchBox_TextChanged"/>
-                    <TextBlock Text="메모 검색" FontSize="13" Foreground="{StaticResource MutedBrush}"
+                    <TextBlock Text="{loc:Text SearchNotes}" FontSize="13" Foreground="{StaticResource MutedBrush}"
                                IsHitTestVisible="False">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -182,9 +187,9 @@
 
             <!-- 필터 -->
             <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,10">
-                <RadioButton Content="전체" Tag="all" IsChecked="True" Style="{StaticResource FilterChip}" Checked="Filter_Checked"/>
-                <RadioButton Content="활성" Tag="active" Style="{StaticResource FilterChip}" Checked="Filter_Checked"/>
-                <RadioButton Content="숨김" Tag="archived" Style="{StaticResource FilterChip}" Checked="Filter_Checked"/>
+                <RadioButton Content="{loc:Text All}" Tag="all" IsChecked="True" Style="{StaticResource FilterChip}" Checked="Filter_Checked"/>
+                <RadioButton Content="{loc:Text Active}" Tag="active" Style="{StaticResource FilterChip}" Checked="Filter_Checked"/>
+                <RadioButton Content="{loc:Text Hidden}" Tag="archived" Style="{StaticResource FilterChip}" Checked="Filter_Checked"/>
             </StackPanel>
 
             <ListBox x:Name="NoteList" Grid.Row="3"
@@ -197,7 +202,7 @@
         <!-- 오른쪽: 선택한 노트 상세 -->
         <Border Grid.Column="1" Background="#F1EFEA" Padding="24">
             <Grid>
-                <TextBlock Text="왼쪽에서 메모를 선택하세요" Foreground="{StaticResource MutedBrush}"
+                <TextBlock Text="{loc:Text ChooseNote}" Foreground="{StaticResource MutedBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -228,16 +233,20 @@
 
                     <!-- 상태와 동작 버튼 -->
                     <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Ellipse Width="10" Height="10" Margin="0,0,10,0"
                                      Fill="{Binding ColorHex, Converter={StaticResource HexToBrush}}"/>
                             <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
-                                        <Setter Property="Text" Value="활성 · 덱에 표시"/>
+                                        <Setter Property="Text" Value="{loc:Text ActiveDeck}"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsArchived}" Value="True">
-                                                <Setter Property="Text" Value="숨김 상태"/>
+                                                <Setter Property="Text" Value="{loc:Text HiddenState}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -245,8 +254,8 @@
                             </TextBlock>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="숨김" Style="{StaticResource SoftButton}" Click="Archive_Click">
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                            <Button Content="{loc:Text Hide}" Style="{StaticResource SoftButton}" Click="Archive_Click">
                                 <Button.Visibility>
                                     <Binding Path="IsArchived">
                                         <Binding.Converter>
@@ -255,7 +264,7 @@
                                     </Binding>
                                 </Button.Visibility>
                             </Button>
-                            <Button Content="복원" Style="{StaticResource SoftButton}" Click="Restore_Click">
+                            <Button Content="{loc:Text Restore}" Style="{StaticResource SoftButton}" Click="Restore_Click">
                                 <Button.Visibility>
                                     <Binding Path="IsArchived">
                                         <Binding.Converter>
@@ -264,8 +273,8 @@
                                     </Binding>
                                 </Button.Visibility>
                             </Button>
-                            <Button Content="내보내기..." Style="{StaticResource SoftButton}" Click="Export_Click"/>
-                            <Button Content="삭제" Style="{StaticResource SoftButton}" Foreground="#B3261E" Click="Delete_Click"/>
+                            <Button Content="{loc:Text ExportButton}" Style="{StaticResource SoftButton}" Click="Export_Click"/>
+                            <Button Content="{loc:Text Delete}" Style="{StaticResource SoftButton}" Foreground="#B3261E" Click="Delete_Click"/>
                         </StackPanel>
                     </Grid>
 
@@ -284,7 +293,7 @@
                                 <Grid Margin="0,0,120,0">
                                     <TextBlock x:Name="DetailTitle" Text="{Binding Title}" FontSize="{DynamicResource DetailTitleSize}" FontWeight="SemiBold"
                                                Foreground="{StaticResource NoteTitleBrush}" TextTrimming="CharacterEllipsis"
-                                               Cursor="IBeam" ToolTip="클릭하여 편집"
+                                               Cursor="IBeam" ToolTip="{loc:Text EditTooltip}"
                                                MouseLeftButtonUp="DetailTitle_MouseLeftButtonUp"/>
                                     <TextBox x:Name="DetailTitleBox" Style="{StaticResource DetailEditBox}"
                                              FontSize="{DynamicResource DetailTitleSize}" FontWeight="SemiBold"
@@ -293,7 +302,7 @@
                                 </Grid>
                                 <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
                                            Foreground="{StaticResource NoteLabelBrush}"
-                                           Text="{Binding UpdatedAt, StringFormat='수정 {0:MM.dd HH:mm}'}"/>
+                                           Text="{loc:Text UpdatedDate, Value={Binding UpdatedAt}}"/>
                             </Grid>
 
                             <!-- 본문: 빈 영역을 눌러도 편집에 들어가도록 투명 배경으로 히트 테스트 -->
@@ -301,7 +310,7 @@
                                 <ScrollViewer x:Name="DetailBodyScroll" VerticalScrollBarVisibility="Auto">
                                     <TextBlock x:Name="DetailBody" Text="{Binding Body}" FontSize="{DynamicResource DetailBodySize}" LineHeight="{DynamicResource DetailBodyLineHeight}"
                                                Foreground="{StaticResource NoteBodyBrush}" TextWrapping="Wrap"
-                                               Cursor="IBeam" ToolTip="클릭하여 편집"/>
+                                               Cursor="IBeam" ToolTip="{loc:Text EditTooltip}"/>
                                 </ScrollViewer>
                                 <TextBox x:Name="DetailBodyBox" Style="{StaticResource DetailEditBox}"
                                          FontSize="{DynamicResource DetailBodySize}"
@@ -315,21 +324,21 @@
                             <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="#33000000" Margin="0,16,0,0" Padding="0,10,0,0">
                                 <Grid>
                                     <StackPanel x:Name="DetailColorRow" Orientation="Horizontal" VerticalAlignment="Center"
-                                                ToolTip="메모지 색상"/>
+                                                ToolTip="{loc:Text NoteColor}"/>
 
                                     <TextBlock x:Name="DetailTimes" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                FontSize="12" Foreground="{StaticResource NoteLabelBrush}">
-                                        <Run Text="{Binding CreatedAt, StringFormat='생성 {0:yyyy-MM-dd HH:mm}', Mode=OneWay}"/>
+                                        <Run Text="{loc:Text CreatedDate, Value={Binding CreatedAt}}"/>
                                         <Run Text=" · "/>
-                                        <Run Text="{Binding UpdatedAt, Converter={StaticResource RelativeTime}, StringFormat='수정 {0}', Mode=OneWay}"/>
+                                        <Run Text="{loc:Text UpdatedRelative, Value={Binding UpdatedAt}, Relative=True}"/>
                                     </TextBlock>
 
                                     <StackPanel x:Name="DetailEditActions" Orientation="Horizontal" HorizontalAlignment="Right"
                                                 VerticalAlignment="Center" Visibility="Collapsed">
-                                        <TextBlock Text="Esc 취소 · Ctrl+Enter 저장" FontSize="11" VerticalAlignment="Center"
+                                        <TextBlock Text="{loc:Text EditShortcuts}" FontSize="11" VerticalAlignment="Center"
                                                    Foreground="{StaticResource NoteLabelBrush}" Margin="0,0,6,0"/>
-                                        <Button Content="취소" Style="{StaticResource SoftButton}" Click="DetailCancel_Click"/>
-                                        <Button Content="저장" Style="{StaticResource SoftButton}" FontWeight="SemiBold" Click="DetailSave_Click"/>
+                                        <Button Content="{loc:Text Cancel}" Style="{StaticResource SoftButton}" Click="DetailCancel_Click"/>
+                                        <Button Content="{loc:Text Save}" Style="{StaticResource SoftButton}" FontWeight="SemiBold" Click="DetailSave_Click"/>
                                     </StackPanel>
                                 </Grid>
                             </Border>

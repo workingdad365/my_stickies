@@ -14,6 +14,9 @@ public sealed class AppSettings
     /// <summary>메모 DB 파일(my_stickies.db)을 두는 폴더</summary>
     public string DataDirectory { get; set; } = DefaultDataDirectory;
 
+    /// <summary>앱 표시 언어. 기존 설정 파일에 항목이 없으면 한국어를 유지함</summary>
+    public string Language { get; set; } = "ko";
+
     /// <summary>덱을 붙일 모니터의 장치 이름. null이면 주 모니터</summary>
     public string? DockMonitor { get; set; }
 

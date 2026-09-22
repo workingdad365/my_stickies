@@ -1,5 +1,6 @@
 using System.Windows;
 using MyStickies.Interop;
+using MyStickies.Localization;
 using WF = System.Windows.Forms;
 
 namespace MyStickies.Layout;
@@ -18,9 +19,8 @@ public sealed record MonitorInfo(
     {
         get
         {
-            var label = $"모니터 {Index + 1} ({Bounds.Width:0}x{Bounds.Height:0}, {Scale * 100:0}%";
-            if (IsPrimary) label += ", 주";
-            return label + ")";
+            return Strings.Get("MonitorLabel", Index + 1, Bounds.Width, Bounds.Height, Scale * 100,
+                IsPrimary ? Strings.Get("PrimaryMonitor") : string.Empty);
         }
     }
 

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Windows;
 using MyStickies.Data;
 using MyStickies.Update;
+using MyStickies.Localization;
 
 namespace MyStickies.Windows;
 
@@ -33,11 +34,18 @@ public partial class UpdateWindow : Window
         _info = info;
         InitializeComponent();
 
-        Headline.Text = $"새 버전 v{info.Version}이 있습니다";
-        SubText.Text = $"현재 버전 {AppInfo.Version}. 설치하면 앱이 잠시 종료된 뒤 자동으로 다시 실행됩니다.";
-        Notes.Text = string.IsNullOrWhiteSpace(info.Notes) ? "릴리스 노트가 없습니다." : info.Notes.Trim();
+        RefreshLanguage();
+        Strings.LanguageChanged += RefreshLanguage;
+        Closed += (_, _) => Strings.LanguageChanged -= RefreshLanguage;
 
         Closing += OnClosing;
+    }
+
+    private void RefreshLanguage()
+    {
+        Headline.Text = Strings.Get("UpdateHeadline", _info.Version);
+        SubText.Text = Strings.Get("UpdateSubtext", AppInfo.Version);
+        Notes.Text = string.IsNullOrWhiteSpace(_info.Notes) ? Strings.Get("NoReleaseNotes") : _info.Notes.Trim();
     }
 
     /// <summary>다운로드 중 창을 닫으면 다운로드를 취소하고 "나중에"로 처리</summary>
@@ -69,11 +77,11 @@ public partial class UpdateWindow : Window
             var progress = new Progress<double>(p =>
             {
                 Progress.Value = p;
-                ProgressText.Text = $"다운로드 중... {p:P0}";
+                ProgressText.Text = Strings.Get("DownloadProgress", p);
             });
             var path = await UpdateChecker.DownloadAsync(_info, progress, _download.Token);
 
-            ProgressText.Text = "설치 프로그램을 실행합니다...";
+            Strings.Bind(ProgressText, System.Windows.Controls.TextBlock.TextProperty, "RunInstaller");
             UpdateChecker.RunInstaller(path);
 
             Choice = UpdateChoice.Install;
@@ -89,7 +97,7 @@ public partial class UpdateWindow : Window
         {
             _download = null;
             SetBusy(false);
-            MessageBox.Show(this, $"업데이트를 설치하지 못했습니다.\n{ex.Message}", "업데이트",
+            MessageBox.Show(this, Strings.Get("UpdateFailed", ex.Message), Strings.Get("Update"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -98,12 +106,12 @@ public partial class UpdateWindow : Window
     {
         InstallButton.IsEnabled = !busy;
         SkipButton.IsEnabled = !busy;
-        LaterButton.Content = busy ? "취소" : "나중에";
+        Strings.Bind(LaterButton, System.Windows.Controls.ContentControl.ContentProperty, busy ? "Cancel" : "Later");
         ProgressPanel.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
         if (busy)
         {
             Progress.Value = 0;
-            ProgressText.Text = "다운로드 준비 중...";
+            Strings.Bind(ProgressText, System.Windows.Controls.TextBlock.TextProperty, "DownloadPreparing");
         }
     }
 }

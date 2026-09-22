@@ -126,7 +126,7 @@ public static class UpdateChecker
         }
 
         if (info.Size > 0 && done != info.Size)
-            throw new IOException($"다운로드한 크기({done})가 릴리스 정보({info.Size})와 다릅니다");
+            throw new IOException(MyStickies.Localization.Strings.Get("DownloadSizeMismatch", done, info.Size));
         return path;
     }
 

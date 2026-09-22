@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using MyStickies.Data;
 using MyStickies.Interop;
 using MyStickies.Layout;
+using MyStickies.Localization;
 
 namespace MyStickies.Windows;
 
@@ -36,21 +37,18 @@ public partial class DataLocationWindow : Window
         FontBox.SelectedItem is FontSettings.FontChoice f ? f.Source : FontSettings.DefaultFamily;
 
     public int NoteFontSize => (int)Math.Round(FontSizeSlider.Value);
+    public string SelectedLanguage => LanguageBox.SelectedValue as string ?? "ko";
 
     public DataLocationWindow(AppSettings settings, bool firstRun)
     {
         SelectedDirectory = settings.DataDirectory;
         InitializeComponent();
 
-        Title = firstRun ? "메모 저장 위치" : "설정";
+        LanguageBox.SelectedValue = Strings.Normalize(settings.Language);
+        Title = Strings.Get(firstRun ? "StorageTitle" : "Settings");
         VersionText.Text = $"My Stickies {AppInfo.Version}";
-        Intro.Text = firstRun
-            ? "메모를 저장할 폴더를 정해 주세요. 기본 위치는 이 PC의 앱 데이터 폴더입니다. " +
-              "Synology Drive 같은 동기화 폴더를 지정하면 여러 PC에서 같은 메모를 함께 쓸 수 있습니다. " +
-              "나중에 트레이 메뉴의 설정에서 바꿀 수 있습니다."
-            : "메모 파일(my_stickies.db)을 둘 폴더를 바꾸면 새 폴더에 이미 메모 파일이 있을 때 그 파일을 그대로 사용하고, " +
-              "없으면 현재 메모를 복사할지 물어본 뒤 새로 만듭니다.";
-        CancelButton.Content = firstRun ? "기본 위치 사용" : "취소";
+        Intro.Text = Strings.Get(firstRun ? "StorageIntroFirst" : "StorageIntro");
+        CancelButton.Content = Strings.Get(firstRun ? "UseDefaultFolder" : "Cancel");
 
         PathBox.Text = SelectedDirectory;
         UpdateStatus();
@@ -76,7 +74,7 @@ public partial class DataLocationWindow : Window
             HideOnFullscreenBox.IsChecked = settings.HideOnFullscreen;
             HotkeysBox.IsChecked = settings.GlobalHotkeys;
             UpdateCheckBox.IsChecked = settings.CheckForUpdates;
-            HotkeysHint.Text = Interop.GlobalHotkeys.Description + ". 다른 프로그램과 겹치면 끄세요.";
+            HotkeysHint.Text = Strings.Get("HotkeysHint", Interop.GlobalHotkeys.Description);
 
             var fonts = FontSettings.InstalledFonts();
             FontBox.ItemsSource = fonts;
@@ -91,26 +89,22 @@ public partial class DataLocationWindow : Window
     private void UpdateStatus()
     {
         var dbPath = NoteRepository.PathFor(SelectedDirectory);
-        StatusText.Text = File.Exists(dbPath)
-            ? "이 폴더에 기존 메모 파일이 있어 그대로 사용합니다."
-            : "이 폴더에는 메모 파일이 없어 새로 만듭니다. 현재 메모를 복사하거나, 안내 메모만 든 새 파일로 시작할 수 있습니다.";
+        StatusText.Text = Strings.Get(File.Exists(dbPath) ? "StorageExists" : "StorageMissing");
     }
 
     /// <summary>자동 실행에 등록될 경로 안내. 게시된 설치 폴더가 아니면 경고</summary>
     private void UpdateAutoStartHint()
     {
-        var exe = StartupRegistration.CurrentExePath ?? "(알 수 없음)";
+        var exe = StartupRegistration.CurrentExePath ?? Strings.Get("Unknown");
         if (AutoStartBox.IsChecked != true)
         {
-            AutoStartHint.Text = "로그인할 때 My Stickies를 자동으로 시작합니다.";
+            AutoStartHint.Text = Strings.Get("AutoStartHint");
             return;
         }
 
         AutoStartHint.Text = StartupRegistration.IsRunningFromInstallDirectory()
-            ? $"등록 경로: {exe}"
-            : $"현재 실행 파일이 설치 폴더가 아닙니다: {exe}\n" +
-              "빌드 출력 폴더가 정리되면 자동 실행이 깨질 수 있습니다. " +
-              "publish.ps1로 게시한 뒤 그 실행 파일에서 등록하는 것을 권장합니다.";
+            ? Strings.Get("RegisteredPath", exe)
+            : Strings.Get("AutoStartWarning", exe);
     }
 
     /// <summary>미리보기에 현재 선택한 글꼴과 크기 적용</summary>
@@ -140,7 +134,7 @@ public partial class DataLocationWindow : Window
     {
         var dialog = new OpenFolderDialog
         {
-            Title = "메모 저장 폴더 선택",
+            Title = Strings.Get("ChooseStorage"),
             InitialDirectory = Directory.Exists(SelectedDirectory) ? SelectedDirectory : AppSettings.DefaultDataDirectory,
         };
         if (dialog.ShowDialog(this) != true) return;
@@ -158,7 +152,7 @@ public partial class DataLocationWindow : Window
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show(this, $"폴더를 만들거나 접근할 수 없습니다.\n{ex.Message}", "메모 저장 위치",
+            MessageBox.Show(this, Strings.Get("StorageError", ex.Message), Strings.Get("StorageTitle"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }

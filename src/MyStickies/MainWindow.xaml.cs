@@ -20,6 +20,7 @@ using MyStickies.Windows;
 using System.Net.Http;
 using System.Text.Json;
 using MyStickies.Update;
+using MyStickies.Localization;
 
 namespace MyStickies;
 
@@ -225,7 +226,7 @@ public partial class MainWindow : Window
     {
         if (_hiddenByUser == hidden) return;
         _hiddenByUser = hidden;
-        ToggleVisibilityItem.Header = hidden ? "보이기" : "감추기";
+        Strings.Bind(ToggleVisibilityItem, HeaderedItemsControl.HeaderProperty, hidden ? "ShowDeck" : "HideDeck");
         _tray?.SetHidden(hidden);
 
         if (hidden)
@@ -245,12 +246,23 @@ public partial class MainWindow : Window
     private static AppSettings LoadOrAskSettings()
     {
         var settings = AppSettings.Load(AppSettings.SettingsPath);
-        if (settings is not null) return settings;
+        if (settings is not null)
+        {
+            Strings.SetLanguage(settings.Language);
+            return settings;
+        }
 
-        settings = new AppSettings();
+        var language = new LanguageWindow();
+        language.ShowDialog();
+        settings = new AppSettings { Language = language.SelectedLanguage };
+        Strings.SetLanguage(settings.Language);
         var dialog = new DataLocationWindow(settings, firstRun: true);
         if (dialog.ShowDialog() == true)
+        {
             settings.DataDirectory = dialog.SelectedDirectory;
+            settings.Language = dialog.SelectedLanguage;
+            Strings.SetLanguage(settings.Language);
+        }
         settings.Save(AppSettings.SettingsPath);
         return settings;
     }
@@ -267,6 +279,13 @@ public partial class MainWindow : Window
     {
         var dialog = new DataLocationWindow(_settings, firstRun: false);
         if (dialog.ShowDialog() != true) return;
+
+        if (_settings.Language != dialog.SelectedLanguage)
+        {
+            _settings.Language = dialog.SelectedLanguage;
+            _settings.Save(AppSettings.SettingsPath);
+            Strings.SetLanguage(_settings.Language);
+        }
 
         // 자동 실행: 현재 실행 파일 경로를 HKCU Run 키에 등록/해제
         if (dialog.AutoStart != StartupRegistration.IsEnabled())
@@ -320,8 +339,8 @@ public partial class MainWindow : Window
             _settings.Save(AppSettings.SettingsPath);
             ApplyHotkeySetting();
             if (_hotkeys is { Failed.Count: > 0 })
-                MessageBox.Show($"다른 프로그램이 이미 사용 중인 단축키가 있어 등록하지 못했습니다: {string.Join(", ", _hotkeys.Failed)}",
-                    "전역 단축키", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(Strings.Get("HotkeysFailed", string.Join(", ", _hotkeys.Failed)),
+                    Strings.Get("HotkeysTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         var newDir = dialog.SelectedDirectory;
@@ -335,9 +354,8 @@ public partial class MainWindow : Window
         if (!File.Exists(newDb) && Notes.Count > 0)
         {
             var answer = MessageBox.Show(
-                "새 폴더에 메모 파일이 없습니다. 현재 메모를 새 위치로 복사할까요?\n\n" +
-                "'아니요'를 누르면 안내 메모만 들어 있는 새 파일을 만듭니다.",
-                "메모 저장 위치 변경", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                Strings.Get("StorageCopyPrompt"),
+                Strings.Get("StorageChange"), MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
             if (answer == MessageBoxResult.Cancel) return;
             if (answer == MessageBoxResult.Yes)
             {
@@ -445,7 +463,7 @@ public partial class MainWindow : Window
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException or IOException)
         {
             if (manual)
-                MessageBox.Show($"업데이트 정보를 가져오지 못했습니다.\n{ex.Message}", "업데이트",
+                MessageBox.Show(Strings.Get("UpdateCheckFailed", ex.Message), Strings.Get("Update"),
                     MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
@@ -455,7 +473,7 @@ public partial class MainWindow : Window
             _pendingUpdate = null;
             _tray?.SetUpdateAvailable(null);
             if (manual)
-                MessageBox.Show($"현재 버전 {AppInfo.Version}이 최신입니다.", "업데이트",
+                MessageBox.Show(Strings.Get("UpToDate", AppInfo.Version), Strings.Get("Update"),
                     MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -473,7 +491,7 @@ public partial class MainWindow : Window
         else if (!_updateNotified)
         {
             _updateNotified = true;
-            _tray?.ShowBalloon("My Stickies 업데이트", $"새 버전 v{info.Version}이 있습니다. 클릭하면 설치할 수 있습니다.");
+            _tray?.ShowBalloon(Strings.Get("UpdateTitle"), Strings.Get("UpdateBalloon", info.Version));
         }
     }
 

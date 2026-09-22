@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.IO;
 using MyStickies.Data;
+using MyStickies.Localization;
 using WF = System.Windows.Forms;
 
 namespace MyStickies.Tray;
@@ -12,6 +13,9 @@ internal sealed class TrayIcon : IDisposable
     private readonly Icon _image;
     private readonly WF.ToolStripMenuItem _toggleItem;
     private readonly WF.ToolStripMenuItem _updateItem;
+    private readonly List<(WF.ToolStripMenuItem Item, string Key)> _translatedItems = [];
+    private bool _hidden;
+    private string? _updateVersion;
 
     /// <summary>메뉴의 "새 메모" 선택</summary>
     public event Action? AddNoteRequested;
@@ -41,16 +45,16 @@ internal sealed class TrayIcon : IDisposable
         var menu = new WF.ContextMenuStrip();
         menu.Items.Add(new WF.ToolStripMenuItem($"My Stickies {AppInfo.Version}") { Enabled = false });
         menu.Items.Add(new WF.ToolStripSeparator());
-        menu.Items.Add("새 메모", null, (_, _) => AddNoteRequested?.Invoke());
-        menu.Items.Add("메모 관리", null, (_, _) => AllNotesRequested?.Invoke());
-        menu.Items.Add("설정", null, (_, _) => SettingsRequested?.Invoke());
-        _toggleItem = new WF.ToolStripMenuItem("감추기", null, (_, _) => ToggleVisibilityRequested?.Invoke());
+        menu.Items.Add(CreateItem("NewNote", () => AddNoteRequested?.Invoke()));
+        menu.Items.Add(CreateItem("ManageNotes", () => AllNotesRequested?.Invoke()));
+        menu.Items.Add(CreateItem("Settings", () => SettingsRequested?.Invoke()));
+        _toggleItem = new WF.ToolStripMenuItem(Strings.Get("HideDeck"), null, (_, _) => ToggleVisibilityRequested?.Invoke());
         menu.Items.Add(_toggleItem);
         menu.Items.Add(new WF.ToolStripSeparator());
-        _updateItem = new WF.ToolStripMenuItem("업데이트 확인...", null, (_, _) => UpdateRequested?.Invoke());
+        _updateItem = new WF.ToolStripMenuItem(Strings.Get("CheckUpdates"), null, (_, _) => UpdateRequested?.Invoke());
         menu.Items.Add(_updateItem);
         menu.Items.Add(new WF.ToolStripSeparator());
-        menu.Items.Add("종료", null, (_, _) => ExitRequested?.Invoke());
+        menu.Items.Add(CreateItem("Exit", () => ExitRequested?.Invoke()));
 
         _icon = new WF.NotifyIcon
         {
@@ -65,12 +69,28 @@ internal sealed class TrayIcon : IDisposable
                 Clicked?.Invoke();
         };
         _icon.BalloonTipClicked += (_, _) => UpdateRequested?.Invoke();
+        Strings.LanguageChanged += RefreshLanguage;
+    }
+
+    private WF.ToolStripMenuItem CreateItem(string key, Action action)
+    {
+        var item = new WF.ToolStripMenuItem(Strings.Get(key), null, (_, _) => action());
+        _translatedItems.Add((item, key));
+        return item;
+    }
+
+    private void RefreshLanguage()
+    {
+        foreach (var (item, key) in _translatedItems) item.Text = Strings.Get(key);
+        _toggleItem.Text = Strings.Get(_hidden ? "ShowDeck" : "HideDeck");
+        _updateItem.Text = _updateVersion is null ? Strings.Get("CheckUpdates") : Strings.Get("InstallUpdate", _updateVersion);
     }
 
     /// <summary>새 버전이 대기 중이면 메뉴 문구를 "업데이트 vX 설치..."로, 없으면 "업데이트 확인..."으로</summary>
     public void SetUpdateAvailable(string? version)
     {
-        _updateItem.Text = version is null ? "업데이트 확인..." : $"업데이트 v{version} 설치...";
+        _updateVersion = version;
+        _updateItem.Text = version is null ? Strings.Get("CheckUpdates") : Strings.Get("InstallUpdate", version);
         _updateItem.Font = version is null
             ? null
             : new Font(_updateItem.Font ?? WF.Control.DefaultFont, FontStyle.Bold);
@@ -81,10 +101,15 @@ internal sealed class TrayIcon : IDisposable
         _icon.ShowBalloonTip(8000, title, text, WF.ToolTipIcon.Info);
 
     /// <summary>덱이 감춰진 상태에 맞춰 메뉴 문구를 "보이기" 또는 "감추기"로 바꿈</summary>
-    public void SetHidden(bool hidden) => _toggleItem.Text = hidden ? "보이기" : "감추기";
+    public void SetHidden(bool hidden)
+    {
+        _hidden = hidden;
+        _toggleItem.Text = Strings.Get(hidden ? "ShowDeck" : "HideDeck");
+    }
 
     public void Dispose()
     {
+        Strings.LanguageChanged -= RefreshLanguage;
         _icon.Visible = false;
         _icon.Dispose();
         _image.Dispose();

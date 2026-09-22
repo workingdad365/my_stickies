@@ -11,6 +11,7 @@ using Microsoft.Win32;
 using MyStickies.Converters;
 using MyStickies.Data;
 using MyStickies.Models;
+using MyStickies.Localization;
 
 namespace MyStickies.Windows;
 
@@ -34,7 +35,7 @@ public partial class AllNotesWindow : Window
     {
         _store = store;
         InitializeComponent();
-        Title = $"{AppInfo.Name} v{AppInfo.Version} - 메모 관리";
+        Title = Strings.Get("ManageTitle", AppInfo.Name, AppInfo.Version);
 
         _view = new CollectionViewSource { Source = store.Notes }.View;
         _view.SortDescriptions.Add(new SortDescription(nameof(Note.UpdatedAt), ListSortDirection.Descending));
@@ -43,10 +44,12 @@ public partial class AllNotesWindow : Window
         NoteList.ItemsSource = _view;
 
         _store.NoteChanged += OnNoteChanged;
+        Strings.LanguageChanged += RefreshLanguage;
         _store.Notes.CollectionChanged += OnNotesCollectionChanged;
         Closed += (_, _) =>
         {
             EndDetailEdit(save: true);
+            Strings.LanguageChanged -= RefreshLanguage;
             _store.NoteChanged -= OnNoteChanged;
             _store.Notes.CollectionChanged -= OnNotesCollectionChanged;
         };
@@ -230,7 +233,13 @@ public partial class AllNotesWindow : Window
         UpdateCount();
     }
 
-    private void UpdateCount() => CountText.Text = $"{_view.Cast<object>().Count()}개";
+    private void UpdateCount() => CountText.Text = Strings.Get("NotesCount", _view.Cast<object>().Count());
+
+    private void RefreshLanguage()
+    {
+        Title = Strings.Get("ManageTitle", AppInfo.Name, AppInfo.Version);
+        UpdateCount();
+    }
 
     private void OnNoteChanged(Note note) => Dispatcher.BeginInvoke(Refresh);
 
@@ -266,15 +275,15 @@ public partial class AllNotesWindow : Window
             _store.Restore(note, DateTime.Now);
     }
 
-    private const string ExportFilter = "Markdown (*.md)|*.md|텍스트 (*.txt)|*.txt";
-    private const string ImportFilter = "메모 파일 (*.md;*.txt)|*.md;*.txt|모든 파일 (*.*)|*.*";
+    private static string ExportFilter => Strings.Get("ExportFilter");
+    private static string ImportFilter => Strings.Get("ImportFilter");
 
     /// <summary>파일 이름에 쓸 수 없는 문자를 제거한 제목</summary>
     private static string SafeFileName(string title)
     {
         var invalid = Path.GetInvalidFileNameChars();
         var name = new string(title.Select(c => invalid.Contains(c) ? '_' : c).ToArray()).Trim();
-        return name.Length == 0 ? "메모" : name;
+        return name.Length == 0 ? Strings.Get("NoteFileName") : name;
     }
 
     private void Export_Click(object sender, RoutedEventArgs e)
@@ -283,7 +292,7 @@ public partial class AllNotesWindow : Window
 
         var dialog = new SaveFileDialog
         {
-            Title = "메모 내보내기",
+            Title = Strings.Get("ExportNote"),
             Filter = ExportFilter,
             FileName = SafeFileName(note.Title),
             DefaultExt = ".md",
@@ -301,7 +310,7 @@ public partial class AllNotesWindow : Window
 
         var dialog = new SaveFileDialog
         {
-            Title = "전체 메모 내보내기",
+            Title = Strings.Get("ExportAll"),
             Filter = "Markdown (*.md)|*.md",
             FileName = $"MyStickies-{DateTime.Now:yyyyMMdd-HHmm}",
             DefaultExt = ".md",
@@ -320,7 +329,7 @@ public partial class AllNotesWindow : Window
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show(this, $"파일을 저장하지 못했습니다.\n{ex.Message}", "내보내기",
+            MessageBox.Show(this, Strings.Get("ExportFailed", ex.Message), Strings.Get("Export"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -330,7 +339,7 @@ public partial class AllNotesWindow : Window
     {
         var dialog = new OpenFileDialog
         {
-            Title = "메모 가져오기",
+            Title = Strings.Get("ImportNotes"),
             Filter = ImportFilter,
             Multiselect = true,
         };
@@ -355,7 +364,7 @@ public partial class AllNotesWindow : Window
         if (last is not null)
             NoteList.SelectedItem = last;
         if (failed.Count > 0)
-            MessageBox.Show(this, "읽지 못한 파일: " + string.Join(", ", failed), "가져오기",
+            MessageBox.Show(this, Strings.Get("ImportFailed", string.Join(", ", failed)), Strings.Get("Import"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
@@ -363,7 +372,7 @@ public partial class AllNotesWindow : Window
     {
         if (NoteList.SelectedItem is not Note note) return;
 
-        var answer = MessageBox.Show(this, $"\"{note.Title}\" 메모를 영구 삭제할까요?", "삭제 확인",
+        var answer = MessageBox.Show(this, Strings.Get("DeletePrompt", note.Title), Strings.Get("ConfirmDelete"),
             MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes) return;
 

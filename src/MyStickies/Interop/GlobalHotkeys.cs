@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
+using MyStickies.Localization;
 
 namespace MyStickies.Interop;
 
@@ -35,7 +36,7 @@ internal sealed class GlobalHotkeys : IDisposable
     /// <summary>등록에 실패한 단축키 설명. 모두 성공하면 빈 목록</summary>
     public List<string> Failed { get; } = [];
 
-    public const string Description = "Ctrl+Alt+S 덱 열기/닫기, Ctrl+Alt+N 새 메모";
+    public static string Description => Strings.Get("HotkeysDescription");
 
     public GlobalHotkeys(HwndSource source)
     {

@@ -1,6 +1,6 @@
 # MyStickies 설치 파일을 GitHub Release에 게시하는 스크립트
 # 커밋 및 푸시 후 build-installer.ps1로 설치 파일을 생성한 다음 실행함
-# 사용 예: .\release.ps1 1.0.7 "메모 고정 기능 추가"
+# 사용 예: .\release.ps1 1.0.8 "한국어·영어 지원"
 
 [CmdletBinding()]
 param(

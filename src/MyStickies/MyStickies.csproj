@@ -11,9 +11,9 @@
     <RootNamespace>MyStickies</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>MyStickies</AssemblyName>
-    <Version>1.0.7</Version>
-    <AssemblyVersion>1.0.7.0</AssemblyVersion>
-    <FileVersion>1.0.7.0</FileVersion>
+    <Version>1.0.8</Version>
+    <AssemblyVersion>1.0.8.0</AssemblyVersion>
+    <FileVersion>1.0.8.0</FileVersion>
     <Product>My Stickies</Product>
     <Company>drasys</Company>
     <Description>Sticky notes docked to the edge of your screen</Description>
@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <Resource Include="Assets/app.ico" />
+    <EmbeddedResource Include="Localization/Strings.*.json" WithCulture="false" />
   </ItemGroup>
 
   <!-- WinForms는 트레이 아이콘(NotifyIcon)에만 사용. 암시적 using은 WPF 타입과 충돌하므로 제거 -->

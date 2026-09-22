@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using MyStickies.Converters;
 using MyStickies.Layout;
 using MyStickies.Models;
+using MyStickies.Localization;
 
 namespace MyStickies.Controls;
 
@@ -107,10 +108,10 @@ public partial class NoteTab : UserControl
         Margin = new Thickness(0);
         Card.CornerRadius = new CornerRadius(16);
         PinButton.Background = HexToBrushConverter.Brush("#80404060");
-        PinButton.ToolTip = "고정 해제하여 북마크로 돌려놓기";
-        System.Windows.Automation.AutomationProperties.SetName(PinButton, "메모 고정 해제");
+        Strings.Bind(PinButton, ToolTipProperty, "UnpinTooltip");
+        Strings.Bind(PinButton, System.Windows.Automation.AutomationProperties.NameProperty, "UnpinNote");
         SideLabel.Cursor = Cursors.SizeAll;
-        SideLabel.ToolTip = "왼쪽 띠를 끌어서 이동";
+        Strings.Bind(SideLabel, ToolTipProperty, "MovePinned");
         JumpTo(0);
         SetExpanded(true);
     }
@@ -124,7 +125,7 @@ public partial class NoteTab : UserControl
         _deleteArmed = true;
         DeleteButton.Background = DeleteArmedBrush;
         DeleteButton.Padding = new Thickness(8, 0, 8, 0);
-        DeleteLabel.Text = "삭제";
+        Strings.Bind(DeleteLabel, TextBlock.TextProperty, "Delete");
         DeleteLabel.FontSize = 11;
         DeleteLabel.FontWeight = FontWeights.SemiBold;
         DeleteLabel.Margin = new Thickness(0, -1, 0, 0);

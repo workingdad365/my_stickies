@@ -1,10 +1,11 @@
 <Window x:Class="MyStickies.Windows.UpdateWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="My Stickies 업데이트"
+        xmlns:loc="clr-namespace:MyStickies.Localization"
+        Title="{loc:Text UpdateTitle}"
         Width="500" Height="440" MinWidth="420" MinHeight="340"
         WindowStartupLocation="CenterScreen"
-        Icon="pack://application:,,,/Assets/app.ico"
+        Icon="pack://application:,,,/MyStickies;component/Assets/app.ico"
         Background="#F7F6F2"
         FontFamily="{DynamicResource NoteFont}"
         UseLayoutRounding="True">
@@ -88,11 +89,11 @@
         </StackPanel>
 
         <Grid Grid.Row="4" Margin="0,16,0,0">
-            <Button x:Name="SkipButton" Content="이 버전 건너뛰기" Style="{StaticResource SoftButton}"
+            <Button x:Name="SkipButton" Content="{loc:Text SkipVersion}" Style="{StaticResource SoftButton}"
                     HorizontalAlignment="Left" Margin="0" Click="Skip_Click"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="LaterButton" Content="나중에" Style="{StaticResource SoftButton}" Click="Later_Click"/>
-                <Button x:Name="InstallButton" Content="지금 설치" Style="{StaticResource PrimaryButton}" Click="Install_Click"/>
+                <Button x:Name="LaterButton" Content="{loc:Text Later}" Style="{StaticResource SoftButton}" Click="Later_Click"/>
+                <Button x:Name="InstallButton" Content="{loc:Text InstallNow}" Style="{StaticResource PrimaryButton}" Click="Install_Click"/>
             </StackPanel>
         </Grid>
     </Grid>

@@ -1,5 +1,7 @@
 # My Stickies
 
+[한국어](README.md) | [English](README.en.md)
+
 Windows 화면 오른쪽 가장자리에 붙어 있는 스티커 메모 앱. macOS 앱 [Hold My Notes](https://holdmynotes.app/)의 조작감을 Windows에서 재현한 것.
 
 평소에는 얇은 책갈피 모양으로 숨어 있다가, 마우스를 가져가면 메모들이 펼쳐지고, 메모 위에 올리면 내용이 보이며, 클릭하면 바로 편집됨.
@@ -11,6 +13,7 @@ Windows 화면 오른쪽 가장자리에 붙어 있는 스티커 메모 앱. mac
 
 ## 주요 기능
 
+- 한국어·영어 지원: 최초 실행 시 언어 선택, 설정에서 변경하면 열려 있는 창에도 적용
 - 우측 가장자리 도킹: 휴면(책갈피) -> 팬아웃(탭 목록) -> 확장(본문) 3단계 애니메이션
 - 클릭 편집: 제목칸과 본문칸 개별 편집, 색상 변경, 본문 길이에 따라 카드 높이 자동 조절
 - 메모 고정: 우측 상단 핀 버튼으로 독립 창 분리, 다른 앱 위에 계속 표시, 왼쪽 띠를 끌어 이동, 재시작 후 고정 상태와 위치 복원
@@ -83,16 +86,23 @@ GitHub CLI 설치와 `gh auth login`을 완료한 뒤, 버전 변경을 포함�
 
 ```powershell
 .\build-installer.ps1
-.\release.ps1 1.0.7 "메모 고정 및 플로팅 기능 추가"
+.\release.ps1 1.0.8 "한국어·영어 선택 및 영문 UI 지원"
 ```
 
 - 첫 번째 인자는 버전, 두 번째 인자는 릴리스 본문이며 프로젝트 버전과 일치해야 함
-- `dist\MyStickies-Setup-1.0.7.exe`를 첨부한 `v1.0.7` 릴리스를 생성하고 최신 릴리스로 지정함
+- `dist\MyStickies-Setup-1.0.8.exe`를 첨부한 `v1.0.8` 릴리스를 생성하고 최신 릴리스로 지정함
 - 현재 커밋을 태그 대상으로 사용하므로 먼저 해당 커밋을 GitHub에 푸시해야 함
 - 설치 파일 누락, 미커밋 변경 사항, 게시 오류 발생 시 중단함
 - 동작 기준: [GitHub CLI의 gh release create 문서](https://cli.github.com/manual/gh_release_create)
 
 ## 사용법
+
+### 언어 선택
+
+최초 실행 시 한국어 또는 English를 선택한 뒤 메모 저장 폴더를 지정함.
+트레이 아이콘 우클릭 > 설정 > 언어에서 변경하고 확인을 누르면 메뉴와 열려 있는 창에 즉시 적용됨.
+언어는 이 PC의 설정에 저장되며 재시작 후에도 유지됨. 기존 설치의 언어 기본값은 한국어임.
+작성된 메모의 제목과 본문은 변경하지 않으며, 새 메모의 기본 제목과 최초 안내 메모에 선택한 언어를 적용함.
 
 ### 덱 조작
 
@@ -166,7 +176,7 @@ GitHub CLI 설치와 `gh auth login`을 완료한 뒤, 버전 변경을 포함�
 ## 데이터 위치와 동기화
 
 - 메모는 SQLite 파일 `my_stickies.db` 하나에 저장됨
-- 최초 실행 때 저장 폴더를 물어봄. 기본값은 `%LocalAppData%\MyStickies`
+- 최초 실행 때 언어와 저장 폴더를 물어봄. 기본 저장 위치는 `%LocalAppData%\MyStickies`
 - 설정에서 언제든 폴더를 바꿀 수 있음. 새 폴더에 파일이 있으면 그대로 읽고, 없으면 현재 메모를 복사하거나 안내 메모만 든 새 파일로 시작
 - 폴더 위치 등 PC별 설정은 `%LocalAppData%\MyStickies\settings.json`에 따로 저장됨
 - 동기화 폴더(Synology Drive, OneDrive 등)를 지정하면 여러 PC에서 같은 메모를 사용 가능. 다른 PC에서 파일이 바뀌면 자동으로 다시 읽음
@@ -180,6 +190,7 @@ DB 스키마는 `PRAGMA user_version`으로 관리되며 구버전 파일은 시
 
 | 항목 | 내용 |
 |---|---|
+| 언어 | 한국어·영어 선택, 재시작 없이 적용 |
 | 메모 저장 폴더 | DB 파일 위치 |
 | 덱을 붙일 모니터 | 다중 모니터 중 선택. 모니터별 DPI 반영 |
 | 표시 개수 | 덱에 보일 최근 메모 수 (3~8) |
@@ -197,6 +208,7 @@ my_stickies/
   MyStickies.sln
   publish.ps1              게시 스크립트
   build-installer.ps1      설치 파일 생성 스크립트
+  release.ps1              GitHub Release 게시 스크립트
   installer/MyStickies.iss Inno Setup 설치 스크립트
   PLAN.md                  개발 계획과 진행 상황
   src/MyStickies/
@@ -209,6 +221,7 @@ my_stickies/
     Interop/               Win32: 도구 창, DPI, 전체화면 감지, 전역 단축키
     Tray/                  트레이 아이콘
     Models/                Note, 팔레트, 안내 메모, 상대 시각
+    Localization/          한국어·영어 문구와 실행 중 언어 전환
     Assets/app.ico         앱 아이콘
   tests/MyStickies.Tests/  xunit 단위 테스트
 ```
