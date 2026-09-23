@@ -6,10 +6,13 @@ A sticky notes app docked to the right edge of your Windows screen, inspired by 
 
 Your notes stay tucked away as a thin bookmark. Hover over it to reveal the deck, hover over a note to read it, and click to edit.
 
-![](screenshot01.jpg)
-<br/>
+![](bookmark.webp)
 
-![](screenshot02.jpg)
+![](memo.eng.webp)
+
+![](memo_pinned.eng.webp)
+
+![](memo_mgmt.eng.webp)
 
 ## Features
 
