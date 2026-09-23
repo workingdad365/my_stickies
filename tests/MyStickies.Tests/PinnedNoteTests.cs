@@ -7,6 +7,17 @@ namespace MyStickies.Tests;
 
 public class PinnedNoteTests
 {
+    [Theory]
+    [InlineData(100, 50, 280, 166)]
+    [InlineData(600, 700, 600, 700)]
+    [InlineData(3000, 2000, 1920, 1040)]
+    public void Size_RespectsMinimumAndAvailableWorkArea(double width, double height,
+        double expectedWidth, double expectedHeight)
+    {
+        Assert.Equal(new Size(expectedWidth, expectedHeight),
+            FloatingNoteGeometry.ClampSize(width, height, new Size(1920, 1040)));
+    }
+
     [Fact]
     public void Restore_ExcludesArchivedDeletedAndOtherDatabaseNotes()
     {

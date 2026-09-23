@@ -93,12 +93,12 @@ Install GitHub CLI and sign in with `gh auth login`. Commit and push your change
 
 ```powershell
 .\build-installer.ps1
-.\release.ps1 1.0.8 "Add Korean and English language support"
+.\release.ps1 1.0.9 "Add resizing for pinned notes"
 ```
 
 - The first argument is the version and the second is the release description
 - The version must match the project version
-- Uploads `dist\MyStickies-Setup-1.0.8.exe` to release `v1.0.8` and marks it as the latest release
+- Uploads `dist\MyStickies-Setup-1.0.9.exe` to release `v1.0.9` and marks it as the latest release
 - Uses the current commit as the tag target, so that commit must already be pushed to GitHub
 - Stops if the installer is missing, the working tree has uncommitted changes, or publishing fails
 - Command reference: [GitHub CLI — gh release create](https://cli.github.com/manual/gh_release_create)
@@ -136,7 +136,7 @@ Hide deck temporarily hides the bookmark and deck. Clicking the tray icon or usi
 | `×` at the top right | Arm deletion; click again within three seconds to confirm |
 | Color dots while editing | Change the note color |
 
-Pinned notes stay above other apps even when you click elsewhere. Drag the left strip to move a pinned note. The app remembers pinned notes and their positions for each notes folder on this PC and restores them after restarting.
+Pinned notes stay above other apps even when you click elsewhere. Drag the left strip to move a pinned note. Drag the bottom-right corner to resize both width and height, or the bottom edge to change only the height. After resizing, the note keeps its size while editing; scroll to read any overflowing text. The app remembers pinned notes, their positions, and manually adjusted sizes for each notes folder on this PC and restores them after restarting.
 
 Floating notes support editing, hiding, and deletion. Hiding or deleting a note also removes its pin.
 

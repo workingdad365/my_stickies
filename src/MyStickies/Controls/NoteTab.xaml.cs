@@ -79,6 +79,7 @@ public partial class NoteTab : UserControl
 
     public bool IsExpanded { get; private set; }
     public bool IsEditing { get; private set; }
+    private bool _useWindowSize;
 
     /// <summary>편집 취소 시 되돌릴 색상</summary>
     private string _colorBeforeEdit = NotePalette.Blue;
@@ -118,6 +119,17 @@ public partial class NoteTab : UserControl
 
     /// <summary>다른 창에서 바뀐 내용에 맞춰 펼친 카드 높이를 다시 계산함</summary>
     public void RefreshExpandedHeight() => UpdateExpandedHeight();
+
+    /// <summary>고정 창에서 직접 정한 크기를 사용하고 내용에 따른 자동 높이 조절을 중지함</summary>
+    public void UseFloatingWindowSize()
+    {
+        _useWindowSize = true;
+        BeginAnimation(HeightProperty, null);
+        Width = double.NaN;
+        Height = double.NaN;
+        HorizontalAlignment = HorizontalAlignment.Stretch;
+        VerticalAlignment = VerticalAlignment.Stretch;
+    }
 
     /// <summary>삭제 버튼을 확인 상태로 전환: 빨간 배경에 "삭제" 표시</summary>
     private void ArmDelete()
@@ -240,7 +252,7 @@ public partial class NoteTab : UserControl
     /// <summary>확장 상태에서 내용 변화에 맞춰 카드 높이 재조정</summary>
     private void UpdateExpandedHeight()
     {
-        if (!IsExpanded) return;
+        if (!IsExpanded || _useWindowSize) return;
         var height = MeasureExpandedHeight();
         if (Math.Abs(height - Height) < 0.5) return;
         BeginAnimation(HeightProperty, new DoubleAnimation(height, ExpandDuration) { EasingFunction = Ease });

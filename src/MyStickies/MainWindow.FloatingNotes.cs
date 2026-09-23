@@ -47,7 +47,7 @@ public partial class MainWindow
         SavePinnedNotes();
     }
 
-    private void OpenFloatingNote(Note note, double left, double top)
+    private void OpenFloatingNote(Note note, double left, double top, double? width = null, double? height = null)
     {
         if (_floatingNotes.TryGetValue(note.Id, out var existing))
         {
@@ -56,6 +56,7 @@ public partial class MainWindow
         }
 
         var window = new FloatingNoteWindow(note) { Left = left, Top = top };
+        window.RestoreSize(width, height);
         _floatingNotes.Add(note.Id, window);
         window.UnpinRequested += (_, _) => window.Close();
         window.EditEnded += (_, e) =>
@@ -99,7 +100,7 @@ public partial class MainWindow
         foreach (var state in PinnedNoteState.Restorable(_settings.PinnedNotes, PinDatabasePath, Notes).ToArray())
         {
             var note = Notes.First(n => n.Id == state.NoteId);
-            OpenFloatingNote(note, state.Left, state.Top);
+            OpenFloatingNote(note, state.Left, state.Top, state.Width, state.Height);
         }
         SyncDeckNotes();
         SavePinnedNotes();
@@ -113,7 +114,7 @@ public partial class MainWindow
         var path = PinDatabasePath;
         _settings.PinnedNotes.RemoveAll(s => s.IsForDatabase(path));
         _settings.PinnedNotes.AddRange(_floatingNotes.Values.Select(w =>
-            new PinnedNoteState(path, w.Note.Id, w.Left, w.Top)));
+            new PinnedNoteState(path, w.Note.Id, w.Left, w.Top, w.CustomWidth, w.CustomHeight)));
         _settings.Save(AppSettings.SettingsPath);
     }
 

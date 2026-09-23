@@ -74,7 +74,7 @@ public sealed class AppSettingsTests : IDisposable
         {
             PinnedNotes =
             [
-                new PinnedNoteState(@"C:\Notes\my_stickies.db", Guid.NewGuid(), -800, 240),
+                new PinnedNoteState(@"C:\Notes\my_stickies.db", Guid.NewGuid(), -800, 240, 520, 360),
                 new PinnedNoteState(@"D:\Other\my_stickies.db", Guid.NewGuid(), 640, 100),
             ],
         };
@@ -83,6 +83,24 @@ public sealed class AppSettingsTests : IDisposable
         var loaded = AppSettings.Load(path);
         Assert.NotNull(loaded);
         Assert.Equal(settings.PinnedNotes, loaded.PinnedNotes);
+    }
+
+    [Fact]
+    public void Load_OldPinnedNotesWithoutSizePreservesPositionAndAutomaticSize()
+    {
+        Directory.CreateDirectory(_dir);
+        var path = Path.Combine(_dir, "settings.json");
+        var id = Guid.NewGuid();
+        File.WriteAllText(path, $$"""
+            {"PinnedNotes":[{"DatabasePath":"C:\\Notes\\my_stickies.db","NoteId":"{{id}}","Left":120,"Top":240}]}
+            """);
+
+        var pin = Assert.Single(AppSettings.Load(path)!.PinnedNotes);
+        Assert.Equal(id, pin.NoteId);
+        Assert.Equal(120, pin.Left);
+        Assert.Equal(240, pin.Top);
+        Assert.Null(pin.Width);
+        Assert.Null(pin.Height);
     }
 
     [Fact]

@@ -9,7 +9,31 @@
         ResizeMode="NoResize" SizeToContent="WidthAndHeight"
         WindowStartupLocation="Manual" UseLayoutRounding="True"
         PreviewMouseLeftButtonDown="Window_PreviewMouseLeftButtonDown">
-    <Border Padding="8">
-        <ctl:NoteTab x:Name="NoteView"/>
-    </Border>
+    <Grid>
+        <Border Padding="8">
+            <ctl:NoteTab x:Name="NoteView"/>
+        </Border>
+        <Thumb x:Name="BottomResize" Height="12" Margin="20,0,28,2"
+               VerticalAlignment="Bottom" Cursor="SizeNS" Focusable="False"
+               ToolTip="{loc:Text ResizeHeight}" AutomationProperties.Name="{loc:Text ResizeHeight}"
+               DragStarted="Resize_DragStarted" DragDelta="Resize_DragDelta" DragCompleted="Resize_DragCompleted">
+            <Thumb.Template>
+                <ControlTemplate TargetType="Thumb">
+                    <Border Background="Transparent"/>
+                </ControlTemplate>
+            </Thumb.Template>
+        </Thumb>
+        <Thumb x:Name="CornerResize" Width="24" Height="24" Margin="0,0,4,4"
+               HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" Focusable="False"
+               ToolTip="{loc:Text ResizeNote}" AutomationProperties.Name="{loc:Text ResizeNote}"
+               DragStarted="Resize_DragStarted" DragDelta="Resize_DragDelta" DragCompleted="Resize_DragCompleted">
+            <Thumb.Template>
+                <ControlTemplate TargetType="Thumb">
+                    <Grid Background="Transparent">
+                        <Path Data="M 7,16 L 16,7 M 12,16 L 16,12" Stroke="#60606060" StrokeThickness="1.5"/>
+                    </Grid>
+                </ControlTemplate>
+            </Thumb.Template>
+        </Thumb>
+    </Grid>
 </Window>

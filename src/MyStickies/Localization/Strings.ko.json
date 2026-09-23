@@ -12,6 +12,8 @@
   "UnpinTooltip": "고정 해제하여 북마크로 돌려놓기",
   "UnpinNote": "메모 고정 해제",
   "MovePinned": "왼쪽 띠를 끌어서 이동",
+  "ResizeHeight": "아래쪽 테두리를 끌어서 높이 조절",
+  "ResizeNote": "모서리를 끌어서 가로·세로 크기 조절",
   "PinnedTitle": "고정 메모 · {0}",
   "Hide": "숨김",
   "Hidden": "숨김",

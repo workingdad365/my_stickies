@@ -12,6 +12,8 @@
   "UnpinTooltip": "Unpin and return to the deck",
   "UnpinNote": "Unpin note",
   "MovePinned": "Drag the left strip to move",
+  "ResizeHeight": "Drag the bottom edge to resize vertically",
+  "ResizeNote": "Drag the corner to resize width and height",
   "PinnedTitle": "Pinned note · {0}",
   "Hide": "Hide",
   "Hidden": "Hidden",
