@@ -23,6 +23,9 @@
   "Save": "Save",
   "OK": "OK",
   "Language": "Language",
+  "ChooseLanguage": "Choose your language",
+  "LanguageLater": "You can change this later in Settings.",
+  "Continue": "Continue",
   "LanguageHint": "Click OK to apply the language to open windows.",
   "StorageTitle": "Note storage",
   "StorageFolder": "Notes folder",
@@ -129,5 +132,5 @@
   "SampleOrganizingTitle": "Buttons and organizing",
   "SampleOrganizingBody": "- + below the deck: add a note\n- Pin at the top right: keep a floating note above other apps; drag the left strip to move it\n- Pin again: return the note to the deck\n- − at the top right: hide the note without deleting it\n- × at the top right: delete; click again to confirm\n- Color dots while editing: change the note color\n- Drag notes up or down to reorder them\n\nThe deck shows only your most recent notes. Open All notes from the tray menu or the bookmark’s right-click menu to search, restore, export, and import notes. Pinned notes and their positions are restored when you restart the app.",
   "SampleSettingsTitle": "Settings and syncing",
-  "SampleSettingsBody": "Right-click the tray icon and choose Settings to change:\n\n- Language: Korean or English\n- Notes folder: choose a synced folder such as Synology Drive to share notes across your PCs\n- Dock monitor, visible note count, vertical position, and collapse delay\n- Font and body text size\n- Fullscreen hiding and global shortcuts\n- Automatic startup at Windows sign-in"
+  "SampleSettingsBody": "Right-click the tray icon and choose Settings to change:\n\n- Language: Korean, English, Simplified Chinese, or Japanese\n- Notes folder: choose a synced folder such as Synology Drive to share notes across your PCs\n- Dock monitor, visible note count, vertical position, and collapse delay\n- Font and body text size\n- Fullscreen hiding and global shortcuts\n- Automatic startup at Windows sign-in"
 }

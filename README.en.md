@@ -1,6 +1,6 @@
 # My Stickies
 
-[한국어](README.md) | [English](README.en.md)
+[한국어](README.md) | [English](README.en.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md)
 
 A sticky notes app docked to the right edge of your Windows screen, inspired by the interaction style of [Hold My Notes](https://holdmynotes.app/) for macOS.
 
@@ -16,7 +16,7 @@ Your notes stay tucked away as a thin bookmark. Hover over it to reveal the deck
 
 ## Features
 
-- Korean and English: choose a language on first launch and change it in Settings without restarting
+- Korean, English, Simplified Chinese, and Japanese: choose a language on first launch and change it in Settings without restarting
 - Three display states: bookmark, note tabs, and expanded note content
 - Click to edit titles and body text, change colors, and adjust card height to the content
 - Pin notes as floating windows above other apps; drag the left strip to move them; restore pinned notes and their positions after restarting
@@ -96,12 +96,12 @@ Install GitHub CLI and sign in with `gh auth login`. Commit and push your change
 
 ```powershell
 .\build-installer.ps1
-.\release.ps1 1.0.9 "Add resizing for pinned notes"
+.\release.ps1 1.0.10 "Add Simplified Chinese and Japanese language support"
 ```
 
 - The first argument is the version and the second is the release description
 - The version must match the project version
-- Uploads `dist\MyStickies-Setup-1.0.9.exe` to release `v1.0.9` and marks it as the latest release
+- Uploads `dist\MyStickies-Setup-1.0.10.exe` to release `v1.0.10` and marks it as the latest release
 - Uses the current commit as the tag target, so that commit must already be pushed to GitHub
 - Stops if the installer is missing, the working tree has uncommitted changes, or publishing fails
 - Command reference: [GitHub CLI — gh release create](https://cli.github.com/manual/gh_release_create)
@@ -110,7 +110,7 @@ Install GitHub CLI and sign in with `gh auth login`. Commit and push your change
 
 ### Language
 
-On first launch, select Korean or English before choosing a notes folder. To change the language later, right-click the tray icon, open Settings, select a language, and click OK. Menus and open windows update immediately.
+On first launch, select Korean, English, Simplified Chinese, or Japanese before choosing a notes folder. To change the language later, right-click the tray icon, open Settings, select a language, and click OK. Menus and open windows update immediately.
 
 The language is saved on this PC and restored at startup. Existing installations keep Korean until changed in Settings. Switching the language does not translate or replace your notes. New default titles and welcome notes use the selected language.
 
@@ -201,7 +201,7 @@ Right-click the tray icon and select Settings.
 
 | Setting | Description |
 |---|---|
-| Language | Korean or English; applies without restarting |
+| Language | Korean, English, Simplified Chinese, or Japanese; applies without restarting |
 | Notes folder | Location of the database file |
 | Dock monitor | Monitor for the deck, with per-monitor DPI support |
 | Visible notes | Number of recent notes shown in the deck, from 3 to 8 |
@@ -230,7 +230,7 @@ my_stickies/
     Windows/                  All notes, settings, language selection, floating notes, updates
     Data/                     SQLite repository, note store, settings, export, startup registration
     Layout/                   Deck geometry, monitors, fonts, floating window placement
-    Localization/             Korean and English strings and live language switching
+    Localization/             Korean, English, Simplified Chinese, and Japanese strings and live language switching
     Interop/                  Win32 window styles, DPI, fullscreen detection, global shortcuts
     Tray/                     Tray icon and menu
     Models/                   Notes, palette, welcome notes, relative timestamps

@@ -45,6 +45,8 @@ public sealed class AppSettingsTests : IDisposable
     [Theory]
     [InlineData("ko")]
     [InlineData("en")]
+    [InlineData("zh-CN")]
+    [InlineData("ja")]
     public void Language_RoundTripsWithoutChangingNotesLocationOrPins(string language)
     {
         var path = Path.Combine(_dir, "settings.json");

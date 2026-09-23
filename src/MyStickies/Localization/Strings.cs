@@ -6,20 +6,35 @@ using System.Windows.Data;
 
 namespace MyStickies.Localization;
 
-/// <summary>한국어·영어 문구와 실행 중 언어 변경 알림을 제공함</summary>
+/// <summary>지원 언어별 문구와 실행 중 언어 변경 알림을 제공함</summary>
 public sealed class Strings : INotifyPropertyChanged
 {
     private static readonly IReadOnlyDictionary<string, string> Korean = Load("ko");
     private static readonly IReadOnlyDictionary<string, string> English = Load("en");
+    private static readonly IReadOnlyDictionary<string, string> SimplifiedChinese = Load("zh-CN");
+    private static readonly IReadOnlyDictionary<string, string> Japanese = Load("ja");
     public static Strings Current { get; } = new();
     public string Language { get; private set; } = "ko";
-    public CultureInfo Culture => CultureInfo.GetCultureInfo(Language == "en" ? "en-US" : "ko-KR");
+    public CultureInfo Culture => CultureInfo.GetCultureInfo(Language switch
+    {
+        "en" => "en-US", "zh-CN" => "zh-CN", "ja" => "ja-JP", _ => "ko-KR",
+    });
     public string this[string key] => Catalog(Language).TryGetValue(key, out var value) ? value : key;
     public event PropertyChangedEventHandler? PropertyChanged;
     public static event Action? LanguageChanged;
 
-    public static string Normalize(string? language) => language == "en" ? "en" : "ko";
-    public static IReadOnlyDictionary<string, string> Catalog(string language) => language == "en" ? English : Korean;
+    public static string Normalize(string? language) => language is "en" or "zh-CN" or "ja" ? language : "ko";
+
+    /// <summary>최초 선택 화면의 기본값. 중국어 환경에는 제공 중인 간체를 제안함</summary>
+    public static string PreferredLanguage(CultureInfo culture) => culture.TwoLetterISOLanguageName switch
+    {
+        "ko" => "ko", "zh" => "zh-CN", "ja" => "ja", _ => "en",
+    };
+
+    public static IReadOnlyDictionary<string, string> Catalog(string language) => Normalize(language) switch
+    {
+        "en" => English, "zh-CN" => SimplifiedChinese, "ja" => Japanese, _ => Korean,
+    };
     public static string Get(string key, params object[] args) =>
         args.Length == 0 ? Current[key] : string.Format(Current.Culture, Current[key], args);
 

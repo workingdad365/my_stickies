@@ -55,6 +55,8 @@
         <ComboBox x:Name="LanguageBox" SelectedValuePath="Tag" FontSize="14" Padding="8,6" Margin="0,6,0,6">
             <ComboBoxItem Content="한국어" Tag="ko"/>
             <ComboBoxItem Content="English" Tag="en"/>
+            <ComboBoxItem Content="简体中文" Tag="zh-CN"/>
+            <ComboBoxItem Content="日本語" Tag="ja"/>
         </ComboBox>
         <TextBlock Text="{loc:Text LanguageHint}" Style="{StaticResource Hint}" Margin="0,0,0,20"/>
         <TextBlock x:Name="Intro" TextWrapping="Wrap" FontSize="13" LineHeight="20"
