@@ -49,6 +49,6 @@ public class AppInfoTests
     [Fact]
     public void Version_Is_1_0_8()
     {
-        Assert.Equal("1.0.10", MyStickies.Data.AppInfo.Version);
+        Assert.Equal("1.0.11", MyStickies.Data.AppInfo.Version);
     }
 }
