@@ -666,7 +666,7 @@ public partial class MainWindow : Window
 
         _maxHoverZoneHeight = 0;
         UpdateHoverZoneHeight();
-        HoverZone.IsHitTestVisible = true;
+        HoverZone.Visibility = Visibility.Visible;
         Bookmark.IsHitTestVisible = false;
         Bookmark.BeginAnimation(OpacityProperty, new DoubleAnimation(0, BookmarkFade));
 
@@ -687,7 +687,7 @@ public partial class MainWindow : Window
         if (_editingTab is not null || _movingBookmark) return;
 
         _fanned = false;
-        HoverZone.IsHitTestVisible = false;
+        HoverZone.Visibility = Visibility.Hidden;
 
         if (_expandedTab is not null)
         {

@@ -102,11 +102,13 @@
         </Grid>
 
         <!-- 팬아웃 중 카드와 + 버튼 사이 빈 공간에서도 마우스가 창 안에 머물도록 하는 투명 호버 영역.
-             알파 1의 배경은 눈에 보이지 않지만 히트 테스트 대상이 되어 MouseLeave가 발생하지 않음 -->
+             알파 1의 배경은 눈에 보이지 않지만 히트 테스트 대상이 되어 MouseLeave가 발생하지 않음.
+             투명 창은 OS가 픽셀 알파로 클릭 통과를 판단하므로 IsHitTestVisible만 끄면 아래 창 클릭을 계속 가로챔.
+             휴면 상태에서는 Hidden으로 렌더링 자체를 제거 -->
         <Border x:Name="HoverZone"
                 HorizontalAlignment="Right" VerticalAlignment="Top"
                 Width="88" Background="#01000000"
-                IsHitTestVisible="False"/>
+                Visibility="Hidden"/>
 
         <!-- 팬아웃/확장 상태: 노트 카드 덱 -->
         <StackPanel x:Name="Deck"
