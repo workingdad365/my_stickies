@@ -8,13 +8,9 @@ Windows の画面右端に配置する付箋アプリ。macOS アプリ [Hold My
 
 スクリーンショットは現在、英語版のものを使用しています。
 
-![](bookmark.webp)
+[![My Stickies：メモの展開・編集・固定・移動を紹介する15秒デモ](docs/media/my-stickies-demo-ja.webp)](docs/media/my-stickies-demo-ja.mp4)
 
-![](memo.eng.webp)
-
-![](memo_pinned.eng.webp)
-
-![](memo_mgmt.eng.webp)
+15秒の無音ループ · [高画質MP4を見る](docs/media/my-stickies-demo-ja.mp4)
 
 ## 主な機能
 

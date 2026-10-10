@@ -6,13 +6,9 @@ A sticky notes app docked to the right edge of your Windows screen, inspired by 
 
 Your notes stay tucked away as a thin bookmark. Hover over it to reveal the deck, hover over a note to read it, and click to edit.
 
-![](bookmark.webp)
+[![My Stickies: a 15-second demo of expanding, editing, pinning, and moving notes](docs/media/my-stickies-demo-en.webp)](docs/media/my-stickies-demo-en.mp4)
 
-![](memo.eng.webp)
-
-![](memo_pinned.eng.webp)
-
-![](memo_mgmt.eng.webp)
+15-second silent loop · [Watch the full-resolution MP4](docs/media/my-stickies-demo-en.mp4)
 
 ## Features
 

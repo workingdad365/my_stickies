@@ -8,13 +8,9 @@
 
 以下截图暂时使用英文界面。
 
-![](bookmark.webp)
+[![My Stickies：展开、编辑、固定和移动便签的15秒演示](docs/media/my-stickies-demo-zh-CN.webp)](docs/media/my-stickies-demo-zh-CN.mp4)
 
-![](memo.eng.webp)
-
-![](memo_pinned.eng.webp)
-
-![](memo_mgmt.eng.webp)
+15秒静音循环演示 · [观看高清MP4](docs/media/my-stickies-demo-zh-CN.mp4)
 
 ## 主要功能
 

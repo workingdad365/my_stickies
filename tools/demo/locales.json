@@ -1,0 +1,58 @@
+{
+  "ko": {
+    "FontFamily": "Malgun Gothic",
+    "Culture": "ko-KR",
+    "Eyebrow": "WINDOWS · 스티커 메모",
+    "Headline": ["메모는 가까이.", "화면은 가볍게."],
+    "Tagline": "필요한 순간, 화면 끝에서.",
+    "StepTitles": ["마우스를 올려 펼치기", "클릭하고 바로 메모", "고정해서 곁에 두기", "다시, 가벼운 화면으로"],
+    "StepDetails": ["작은 책갈피에서 시작하세요.", "떠오른 생각을 놓치지 마세요.", "원하는 위치로 옮겨 두세요.", "메모는 화면 끝에서 기다립니다."],
+    "Footer": "펼치기  /  편집  /  고정",
+    "Intro": "15초로 만나는 My Stickies",
+    "NoteTitles": ["오늘 할 일", "작은 아이디어", "나중에 읽기"],
+    "NoteBodies": ["아이디어는 잊기 전에.\n\n□ 디자인 시안 정리\n□ 오후 3시 팀 미팅", "떠오르는 생각을\n가볍게 모아 두기.", "좋은 글과 영감을\n다시 꺼내 보는 곳."],
+    "Typed": "\n□ 새 아이디어 메모하기"
+  },
+  "en": {
+    "FontFamily": "Segoe UI",
+    "Culture": "en-US",
+    "Eyebrow": "WINDOWS · STICKY NOTES",
+    "Headline": ["Notes at hand.", "Room to focus."],
+    "Tagline": "Right at the edge, when you need it.",
+    "StepTitles": ["Hover to unfold", "Click. Write. Done.", "Pin it by your side", "Back to a clear screen"],
+    "StepDetails": ["Start with a tiny bookmark.", "Catch a thought before it slips away.", "Move your note wherever you need it.", "Your notes wait at the edge."],
+    "Footer": "UNFOLD  /  EDIT  /  PIN",
+    "Intro": "Meet My Stickies in 15 seconds",
+    "NoteTitles": ["Today", "Ideas", "Read later"],
+    "NoteBodies": ["Before the idea slips away.\n\n□ Review design drafts\n□ Team meeting at 3 PM", "A little space\nfor passing thoughts.", "Good reads and inspiration\nto come back to."],
+    "Typed": "\n□ Jot down a new idea"
+  },
+  "zh-CN": {
+    "FontFamily": "Microsoft YaHei UI",
+    "Culture": "zh-CN",
+    "Eyebrow": "WINDOWS · 桌面便签",
+    "Headline": ["便签在手边。", "桌面更清爽。"],
+    "Tagline": "需要时，就在屏幕边缘。",
+    "StepTitles": ["鼠标悬停，即刻展开", "轻点一下，随手记录", "固定便签，留在身边", "回到清爽的桌面"],
+    "StepDetails": ["从屏幕边缘的小书签开始。", "不让一闪而过的想法溜走。", "拖到顺手的位置，随时查看。", "便签在屏幕边缘，等你回来。"],
+    "Footer": "展开  /  编辑  /  固定",
+    "Intro": "15秒认识 My Stickies",
+    "NoteTitles": ["今日待办", "灵感随记", "稍后阅读"],
+    "NoteBodies": ["趁灵感还在，记下来。\n\n□ 整理设计稿\n□ 下午3点团队会议", "随手收集\n一闪而过的想法。", "留住好文章和灵感，\n有空再来看看。"],
+    "Typed": "\n□ 记下一个新点子"
+  },
+  "ja": {
+    "FontFamily": "Yu Gothic UI",
+    "Culture": "ja-JP",
+    "Eyebrow": "WINDOWS · 付箋メモ",
+    "Headline": ["メモはそばに。", "画面はすっきり。"],
+    "Tagline": "必要なとき、画面の端から。",
+    "StepTitles": ["マウスを重ねて開く", "クリックして、すぐメモ", "ピン留めして手元に", "また、すっきりした画面へ"],
+    "StepDetails": ["小さなしおりから始めましょう。", "浮かんだアイデアを忘れる前に。", "使いやすい場所へ動かせます。", "メモは画面の端で待っています。"],
+    "Footer": "開く  /  編集  /  ピン留め",
+    "Intro": "15秒でわかる My Stickies",
+    "NoteTitles": ["今日の予定", "アイデア", "あとで読む"],
+    "NoteBodies": ["アイデアは忘れる前に。\n\n□ デザイン案を整理\n□ 午後3時にチーム会議", "ふと思いついたことを\n気軽に書き留める。", "気になる記事やヒントを\nあとでもう一度。"],
+    "Typed": "\n□ 新しいアイデアをメモ"
+  }
+}
