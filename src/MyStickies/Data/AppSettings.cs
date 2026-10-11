@@ -32,6 +32,9 @@ public sealed class AppSettings
     /// <summary>전체화면 앱이 같은 모니터 맨 앞에 있을 때 덱을 숨길지</summary>
     public bool HideOnFullscreen { get; set; } = true;
 
+    /// <summary>사용자가 선택한 덱 감추기 상태. 재시작 후에도 유지하며 전체화면 자동 숨김과는 별개</summary>
+    public bool HiddenByUser { get; set; }
+
     /// <summary>전역 단축키(Ctrl+Alt+S 덱, Ctrl+Alt+N 새 메모) 사용 여부</summary>
     public bool GlobalHotkeys { get; set; } = true;
 

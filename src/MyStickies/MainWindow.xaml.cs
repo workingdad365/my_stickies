@@ -112,6 +112,7 @@ public partial class MainWindow : Window
             PlaceWindow();
             RestorePinnedNotes();
             InitTray();
+            SetHiddenByUser(_settings.HiddenByUser);
             StartUpdateChecks();
             // 시작 인자 --all-notes: 메모 관리 창을 바로 염 (바로 가기, 검증용)
             if (Environment.GetCommandLineArgs().Contains("--all-notes"))
@@ -220,12 +221,17 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// 메뉴의 감추기/보이기. 감추면 책갈피와 덱을 포함한 창 전체를 숨김.
-    /// 저장하지 않으므로 다시 실행하면 보이는 상태로 시작함
+    /// 사용자 선택을 로컬 설정에 저장하여 다시 실행해도 직전 상태를 유지함
     /// </summary>
     private void SetHiddenByUser(bool hidden)
     {
         if (_hiddenByUser == hidden) return;
         _hiddenByUser = hidden;
+        if (_settings.HiddenByUser != hidden)
+        {
+            _settings.HiddenByUser = hidden;
+            _settings.Save(AppSettings.SettingsPath);
+        }
         Strings.Bind(ToggleVisibilityItem, HeaderedItemsControl.HeaderProperty, hidden ? "ShowDeck" : "HideDeck");
         _tray?.SetHidden(hidden);
 

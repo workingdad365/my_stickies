@@ -32,6 +32,34 @@ public sealed class AppSettingsTests : IDisposable
         Assert.Equal(@"D:\Sync\MyStickies", loaded.DataDirectory);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void HiddenByUser_PreservesLastChoiceAcrossRestarts(bool hidden)
+    {
+        var path = Path.Combine(_dir, "settings.json");
+        new AppSettings { HiddenByUser = !hidden }.Save(path);
+
+        var settings = AppSettings.Load(path)!;
+        settings.HiddenByUser = hidden;
+        settings.Save(path);
+
+        var restarted = AppSettings.Load(path)!;
+        Assert.Equal(hidden, restarted.HiddenByUser);
+        Assert.True(restarted.HideOnFullscreen);
+    }
+
+    [Fact]
+    public void ExistingSettingsWithoutHiddenByUser_StartVisible()
+    {
+        Directory.CreateDirectory(_dir);
+        var path = Path.Combine(_dir, "settings.json");
+        File.WriteAllText(path, """{"DataDirectory":"C:\\Notes","HideOnFullscreen":true}""");
+
+        Assert.False(AppSettings.Load(path)!.HiddenByUser);
+        Assert.False(new AppSettings().HiddenByUser);
+    }
+
     [Fact]
     public void Load_ReturnsNullForCorruptFile()
     {
