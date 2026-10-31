@@ -79,6 +79,8 @@ public partial class NoteTab : UserControl
 
     public bool IsExpanded { get; private set; }
     public bool IsEditing { get; private set; }
+    public bool IsSelectingText => TitleText.IsSelecting || BodyText.IsSelecting
+                                   || TitleBox.IsSelecting || BodyBox.IsSelecting;
     private bool _useWindowSize;
 
     /// <summary>편집 취소 시 되돌릴 색상</summary>
@@ -316,14 +318,14 @@ public partial class NoteTab : UserControl
     private void ShowEditors(bool editing)
     {
         TitleText.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
-        BodyScroll.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
+        BodyText.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
         TitleBox.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
         BodyBox.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
         ColorRow.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
         UpdateExpandedHeight();
     }
 
-    private void Title_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    private void Title_MouseLeftButtonUp(object sender, RoutedEventArgs e)
     {
         if (!IsExpanded || IsEditing) return;
         e.Handled = true;
@@ -331,7 +333,7 @@ public partial class NoteTab : UserControl
     }
 
     /// <summary>제목 이외의 카드 영역 클릭은 본문 편집으로 진입</summary>
-    private void Card_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    private void Card_MouseLeftButtonUp(object sender, RoutedEventArgs e)
     {
         if (!IsExpanded || IsEditing) return;
         BeginEdit(focusTitle: false);

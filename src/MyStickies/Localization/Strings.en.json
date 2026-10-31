@@ -21,6 +21,8 @@
   "Restore": "Restore",
   "Cancel": "Cancel",
   "Save": "Save",
+  "SelectionCopied": "Copied to clipboard",
+  "SelectionCopyFailed": "Could not copy. Please select the text again",
   "OK": "OK",
   "Language": "Language",
   "ChooseLanguage": "Choose your language",

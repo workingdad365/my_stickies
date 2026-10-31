@@ -769,6 +769,7 @@ public partial class MainWindow : Window
 
     private void Window_MouseLeave(object sender, MouseEventArgs e)
     {
+        if (_expandedTab?.IsSelectingText == true) return;
         if (_fanned && _editingTab is null && _draggingTab is null && !_movingBookmark)
             _collapseTimer.Start();
     }
@@ -796,7 +797,16 @@ public partial class MainWindow : Window
     private void Window_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         _pressedTab = null;
-        if (_draggingTab is null) return;
+        if (_draggingTab is null)
+        {
+            // 창 밖에서 선택을 끝낸 경우 기본 MouseUp 처리 후 접힘 타이머를 시작함
+            Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+            {
+                if (!IsMouseOver && _fanned && _editingTab is null && !_movingBookmark)
+                    _collapseTimer.Start();
+            });
+            return;
+        }
         EndDrag();
         e.Handled = true;
     }
@@ -860,6 +870,7 @@ public partial class MainWindow : Window
 
     private void Tab_MouseEnter(object sender, MouseEventArgs e)
     {
+        if (_expandedTab?.IsSelectingText == true) return;
         if (sender is not NoteTab tab || !_fanned || _editingTab is not null || _draggingTab is not null) return;
         ExpandTab(tab);
     }
@@ -886,8 +897,9 @@ public partial class MainWindow : Window
     {
         if (sender is not NoteTab tab) return;
 
-        // 드래그 재정렬 후보 기록 (편집 중인 카드는 텍스트 선택을 위해 제외)
-        _pressedTab = tab.IsEditing ? null : tab;
+        // 텍스트 영역과 스크롤바는 선택 및 스크롤을 위해 재정렬 대상에서 제외함
+        _pressedTab = tab.IsEditing || CopyOnDragTextBox.IsTextBoxSource(e.OriginalSource as DependencyObject)
+            ? null : tab;
         _pressPoint = e.GetPosition(this);
 
         if (_editingTab is null || _editingTab == tab) return;
@@ -899,6 +911,7 @@ public partial class MainWindow : Window
     private void Tab_MouseLeave(object sender, MouseEventArgs e)
     {
         if (sender is not NoteTab tab || _expandedTab != tab || _editingTab == tab || _draggingTab is not null) return;
+        if (tab.IsSelectingText) return;
 
         _expandedTab = null;
         tab.SetExpanded(false);

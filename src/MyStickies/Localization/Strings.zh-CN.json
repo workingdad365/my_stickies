@@ -21,6 +21,8 @@
   "Restore": "恢复",
   "Cancel": "取消",
   "Save": "保存",
+  "SelectionCopied": "已复制到剪贴板",
+  "SelectionCopyFailed": "复制失败。请重新选择文本",
   "OK": "确定",
   "Language": "语言",
   "ChooseLanguage": "请选择语言",

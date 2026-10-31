@@ -8,6 +8,7 @@ installer/publish/
 *.snupkg
 
 # Visual Studio / Rider / VS Code
+.*/
 .vs/
 .idea/
 .vscode/

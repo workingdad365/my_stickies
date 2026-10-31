@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:MyStickies.Localization"
         xmlns:conv="clr-namespace:MyStickies.Converters"
+        xmlns:ctl="clr-namespace:MyStickies.Controls"
         Title="{loc:Text ManageNotes}"
         Width="960" Height="620" MinWidth="720" MinHeight="420"
         WindowStartupLocation="CenterScreen"
@@ -38,7 +39,7 @@
             </Setter>
         </Style>
 
-        <!-- 상세 카드 편집용 텍스트 상자. 읽기용 TextBlock과 같은 자리에 겹쳐 두고 전환 -->
+        <!-- 상세 카드의 읽기용 상자와 편집용 상자를 같은 자리에서 전환함 -->
         <Style x:Key="DetailEditBox" TargetType="TextBox">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -47,6 +48,11 @@
             <Setter Property="Visibility" Value="Collapsed"/>
             <Setter Property="FontFamily" Value="{DynamicResource NoteFont}"/>
             <Setter Property="CaretBrush" Value="{StaticResource NoteTitleBrush}"/>
+        </Style>
+
+        <Style x:Key="DetailReadBox" TargetType="TextBox" BasedOn="{StaticResource DetailEditBox}">
+            <Setter Property="Visibility" Value="Visible"/>
+            <Setter Property="IsReadOnly" Value="True"/>
         </Style>
 
         <!-- 연한 회색 버튼 -->
@@ -291,14 +297,15 @@
                             <!-- 제목: 클릭하면 편집. 읽기용과 편집용을 겹쳐 두고 전환 -->
                             <Grid Grid.Row="0" Margin="0,0,0,14">
                                 <Grid Margin="0,0,120,0">
-                                    <TextBlock x:Name="DetailTitle" Text="{Binding Title}" FontSize="{DynamicResource DetailTitleSize}" FontWeight="SemiBold"
-                                               Foreground="{StaticResource NoteTitleBrush}" TextTrimming="CharacterEllipsis"
-                                               Cursor="IBeam" ToolTip="{loc:Text EditTooltip}"
-                                               MouseLeftButtonUp="DetailTitle_MouseLeftButtonUp"/>
-                                    <TextBox x:Name="DetailTitleBox" Style="{StaticResource DetailEditBox}"
-                                             FontSize="{DynamicResource DetailTitleSize}" FontWeight="SemiBold"
-                                             Foreground="{StaticResource NoteTitleBrush}"
-                                             KeyDown="DetailTitleBox_KeyDown"/>
+                                    <ctl:CopyOnDragTextBox x:Name="DetailTitle" Style="{StaticResource DetailReadBox}"
+                                                         Text="{Binding Title, Mode=OneWay}" FontSize="{DynamicResource DetailTitleSize}" FontWeight="SemiBold"
+                                                         Foreground="{StaticResource NoteTitleBrush}"
+                                                         Cursor="IBeam" ToolTip="{loc:Text EditTooltip}"
+                                                         ReadClicked="DetailTitle_MouseLeftButtonUp"/>
+                                    <ctl:CopyOnDragTextBox x:Name="DetailTitleBox" Style="{StaticResource DetailEditBox}"
+                                                         FontSize="{DynamicResource DetailTitleSize}" FontWeight="SemiBold"
+                                                         Foreground="{StaticResource NoteTitleBrush}"
+                                                         KeyDown="DetailTitleBox_KeyDown"/>
                                 </Grid>
                                 <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
                                            Foreground="{StaticResource NoteLabelBrush}"
@@ -307,17 +314,18 @@
 
                             <!-- 본문: 빈 영역을 눌러도 편집에 들어가도록 투명 배경으로 히트 테스트 -->
                             <Grid Grid.Row="1" Background="Transparent" MouseLeftButtonUp="DetailBody_MouseLeftButtonUp">
-                                <ScrollViewer x:Name="DetailBodyScroll" VerticalScrollBarVisibility="Auto">
-                                    <TextBlock x:Name="DetailBody" Text="{Binding Body}" FontSize="{DynamicResource DetailBodySize}" LineHeight="{DynamicResource DetailBodyLineHeight}"
-                                               Foreground="{StaticResource NoteBodyBrush}" TextWrapping="Wrap"
-                                               Cursor="IBeam" ToolTip="{loc:Text EditTooltip}"/>
-                                </ScrollViewer>
-                                <TextBox x:Name="DetailBodyBox" Style="{StaticResource DetailEditBox}"
-                                         FontSize="{DynamicResource DetailBodySize}"
-                                         Foreground="{StaticResource NoteBodyBrush}"
-                                         AcceptsReturn="True" TextWrapping="Wrap"
-                                         VerticalScrollBarVisibility="Auto"
-                                         KeyDown="DetailBodyBox_KeyDown"/>
+                                <ctl:CopyOnDragTextBox x:Name="DetailBody" Style="{StaticResource DetailReadBox}"
+                                                     Text="{Binding Body, Mode=OneWay}" FontSize="{DynamicResource DetailBodySize}" TextBlock.LineHeight="{DynamicResource DetailBodyLineHeight}"
+                                                     Foreground="{StaticResource NoteBodyBrush}" TextWrapping="Wrap"
+                                                     AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
+                                                     Cursor="IBeam" ToolTip="{loc:Text EditTooltip}"
+                                                     ReadClicked="DetailBody_MouseLeftButtonUp"/>
+                                <ctl:CopyOnDragTextBox x:Name="DetailBodyBox" Style="{StaticResource DetailEditBox}"
+                                                     FontSize="{DynamicResource DetailBodySize}"
+                                                     Foreground="{StaticResource NoteBodyBrush}"
+                                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                                     VerticalScrollBarVisibility="Auto"
+                                                     KeyDown="DetailBodyBox_KeyDown"/>
                             </Grid>
 
                             <!-- 하단: 색상 선택 점, 생성/수정 시각, 편집 중에는 저장/취소 -->

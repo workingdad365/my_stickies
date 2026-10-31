@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:MyStickies.Localization"
+             xmlns:ctl="clr-namespace:MyStickies.Controls"
              Width="340" Height="150" Margin="0,0,0,8"
              HorizontalAlignment="Right"
              FontFamily="{DynamicResource NoteFont}"
@@ -20,6 +21,10 @@
             <Setter Property="Visibility" Value="Collapsed"/>
             <Setter Property="FontFamily" Value="{DynamicResource NoteFont}"/>
             <Setter Property="CaretBrush" Value="{StaticResource NoteTitleBrush}"/>
+        </Style>
+        <Style x:Key="ReadBox" TargetType="TextBox" BasedOn="{StaticResource EditBox}">
+            <Setter Property="Visibility" Value="Visible"/>
+            <Setter Property="IsReadOnly" Value="True"/>
         </Style>
     </UserControl.Resources>
 
@@ -65,41 +70,38 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- 제목: 읽기용 TextBlock과 편집용 TextBox를 겹쳐 두고 전환 -->
+                <!-- 제목: 선택 가능한 읽기용 상자와 편집용 상자를 전환함 -->
                 <Grid Grid.Row="0" Margin="0,0,102,0">
-                    <TextBlock x:Name="TitleText"
-                               Text="{Binding Title}"
-                               FontSize="{DynamicResource NoteTitleSize}" FontWeight="SemiBold"
-                               Foreground="{StaticResource NoteTitleBrush}"
-                               TextTrimming="CharacterEllipsis"
-                               Cursor="IBeam"
-                               MouseLeftButtonUp="Title_MouseLeftButtonUp"/>
-                    <TextBox x:Name="TitleBox"
-                             Style="{StaticResource EditBox}"
-                             FontSize="{DynamicResource NoteTitleSize}" FontWeight="SemiBold"
-                             Foreground="{StaticResource NoteTitleBrush}"
-                             KeyDown="TitleBox_KeyDown"/>
+                    <ctl:CopyOnDragTextBox x:Name="TitleText" Style="{StaticResource ReadBox}"
+                                         Text="{Binding Title, Mode=OneWay}"
+                                         FontSize="{DynamicResource NoteTitleSize}" FontWeight="SemiBold"
+                                         Foreground="{StaticResource NoteTitleBrush}"
+                                         Cursor="IBeam"
+                                         ReadClicked="Title_MouseLeftButtonUp"/>
+                    <ctl:CopyOnDragTextBox x:Name="TitleBox"
+                                         Style="{StaticResource EditBox}"
+                                         FontSize="{DynamicResource NoteTitleSize}" FontWeight="SemiBold"
+                                         Foreground="{StaticResource NoteTitleBrush}"
+                                         KeyDown="TitleBox_KeyDown"/>
                 </Grid>
 
                 <!-- 본문 -->
                 <Grid Grid.Row="1" Margin="0,6,0,0">
-                    <ScrollViewer x:Name="BodyScroll" VerticalScrollBarVisibility="Auto"
-                                  HorizontalScrollBarVisibility="Disabled">
-                    <TextBlock x:Name="BodyText"
-                               Text="{Binding Body}"
-                               FontSize="{DynamicResource NoteBodySize}" LineHeight="{DynamicResource NoteBodyLineHeight}"
-                               Foreground="{StaticResource NoteBodyBrush}"
-                               TextWrapping="Wrap"
-                               Cursor="IBeam"/>
-                    </ScrollViewer>
-                    <TextBox x:Name="BodyBox"
-                             Style="{StaticResource EditBox}"
-                             FontSize="{DynamicResource NoteBodySize}"
-                             Foreground="{StaticResource NoteBodyBrush}"
-                             AcceptsReturn="True" TextWrapping="Wrap"
-                             VerticalScrollBarVisibility="Auto"
-                             KeyDown="BodyBox_KeyDown"
-                             TextChanged="BodyBox_TextChanged"/>
+                    <ctl:CopyOnDragTextBox x:Name="BodyText" Style="{StaticResource ReadBox}"
+                                         Text="{Binding Body, Mode=OneWay}"
+                                         FontSize="{DynamicResource NoteBodySize}" TextBlock.LineHeight="{DynamicResource NoteBodyLineHeight}"
+                                         Foreground="{StaticResource NoteBodyBrush}"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         Cursor="IBeam" ReadClicked="Card_MouseLeftButtonUp"/>
+                    <ctl:CopyOnDragTextBox x:Name="BodyBox"
+                                         Style="{StaticResource EditBox}"
+                                         FontSize="{DynamicResource NoteBodySize}"
+                                         Foreground="{StaticResource NoteBodyBrush}"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         KeyDown="BodyBox_KeyDown"
+                                         TextChanged="BodyBox_TextChanged"/>
                 </Grid>
 
                 <!-- 색상 선택: 편집 모드에서만 표시. 점들은 코드 비하인드에서 팔레트 기준으로 생성 -->

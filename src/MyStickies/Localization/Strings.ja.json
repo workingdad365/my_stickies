@@ -21,6 +21,8 @@
   "Restore": "再表示",
   "Cancel": "キャンセル",
   "Save": "保存",
+  "SelectionCopied": "クリップボードにコピーしました",
+  "SelectionCopyFailed": "コピーできませんでした。もう一度選択してください",
   "OK": "OK",
   "Language": "言語",
   "ChooseLanguage": "言語を選択してください",

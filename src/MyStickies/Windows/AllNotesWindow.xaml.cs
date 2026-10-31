@@ -146,20 +146,20 @@ public partial class AllNotesWindow : Window
     private void ShowDetailEditors(bool editing)
     {
         DetailTitle.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
-        DetailBodyScroll.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
+        DetailBody.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
         DetailTitleBox.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
         DetailBodyBox.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
         DetailTimes.Visibility = editing ? Visibility.Collapsed : Visibility.Visible;
         DetailEditActions.Visibility = editing ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private void DetailTitle_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    private void DetailTitle_MouseLeftButtonUp(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
         BeginDetailEdit(focusTitle: true);
     }
 
-    private void DetailBody_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    private void DetailBody_MouseLeftButtonUp(object sender, RoutedEventArgs e)
     {
         if (_editing is not null) return;
         e.Handled = true;
