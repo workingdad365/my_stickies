@@ -63,7 +63,7 @@
 
             <!-- 확장 시 나타나는 본문 영역 -->
             <Grid x:Name="BodyPanel" Grid.Column="2"
-                  Margin="14,12,12,12" Opacity="0">
+                  Margin="14,12,12,12" Opacity="0" IsHitTestVisible="False">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>

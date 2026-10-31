@@ -1,8 +1,11 @@
 using System.Reflection;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Threading;
 using MyStickies.Controls;
 using MyStickies.Data;
 using MyStickies.Localization;
@@ -13,6 +16,107 @@ namespace MyStickies.Tests;
 
 public class CopyOnDragTextBoxTests
 {
+    [Fact]
+    public void StationaryClick_WhenTextMoves_DoesNotCopyAndRestoresCaret()
+    {
+        WpfTestHost.Run(() =>
+        {
+            var box = new RecordingTextBox { Text = "움직이는 메모의 본문" };
+            box.Select(2, 0);
+            RaiseMouseButton(box, Mouse.MouseDownEvent, MouseButton.Left);
+
+            // 카드 이동으로 같은 화면 좌표 아래의 문자가 달라진 상황을 재현함
+            box.RenderTransform = new TranslateTransform(-200, 0);
+            var move = new MouseEventArgs(Mouse.PrimaryDevice, Environment.TickCount)
+                { RoutedEvent = Mouse.PreviewMouseMoveEvent };
+            box.RaiseEvent(move);
+            Assert.True(move.Handled);
+            box.Select(2, 6);
+            RaiseMouseButton(box, Mouse.MouseUpEvent, MouseButton.Left);
+
+            Assert.Empty(box.Copies);
+            Assert.Equal(2, box.SelectionStart);
+            Assert.Equal(0, box.SelectionLength);
+        });
+    }
+
+    [Fact]
+    public void SlightPointerJitter_DoesNotCopyOrKeepAnAccidentalSelection()
+    {
+        WpfTestHost.Run(() =>
+        {
+            var box = new RecordingTextBox { Text = "조금 흔들린 클릭" };
+            RaiseMouseButton(box, Mouse.MouseDownEvent, MouseButton.Left);
+            box.ScreenPosition += new Vector(SystemParameters.MinimumHorizontalDragDistance / 2,
+                SystemParameters.MinimumVerticalDragDistance / 2);
+            box.SelectAll();
+            RaiseMouseButton(box, Mouse.MouseUpEvent, MouseButton.Left);
+
+            Assert.Empty(box.Copies);
+            Assert.Equal(0, box.SelectionLength);
+        });
+    }
+
+    [Fact]
+    public void DragReturningToItsStart_StillCopiesTheFinalSelection()
+    {
+        WpfTestHost.Run(() =>
+        {
+            var box = new RecordingTextBox { Text = "드래그한 본문" };
+            var start = box.ScreenPosition;
+            RaiseMouseButton(box, Mouse.MouseDownEvent, MouseButton.Left);
+            box.ScreenPosition += new Vector(80, 0);
+            var move = new MouseEventArgs(Mouse.PrimaryDevice, Environment.TickCount)
+                { RoutedEvent = Mouse.PreviewMouseMoveEvent };
+            box.RaiseEvent(move);
+            Assert.False(move.Handled);
+            box.ScreenPosition = start;
+            box.Select(0, 4);
+            RaiseMouseButton(box, Mouse.MouseUpEvent, MouseButton.Left);
+
+            Assert.Equal("드래그한", Assert.Single(box.Copies));
+        });
+    }
+
+    [Fact]
+    public void CollapsedAndOpeningCard_DoNotAcceptBodyMouseInput()
+    {
+        WpfTestHost.Run(() =>
+        {
+            var card = new NoteTab { DataContext = new Note { Title = "제목", Body = "본문" } };
+            var body = (FrameworkElement)card.FindName("BodyPanel");
+            Assert.False(body.IsHitTestVisible);
+
+            card.SlideTo(0);
+            card.SetExpanded(true);
+            Assert.False(body.IsHitTestVisible);
+        });
+    }
+
+    [Fact]
+    public void OpeningCard_EnablesBodyAfterBothAnimationsEvenWhenEditingChangesHeight()
+    {
+        WpfTestHost.Run(() =>
+        {
+            var card = new NoteTab { DataContext = new Note { Title = "제목", Body = "본문" } };
+            var body = (FrameworkElement)card.FindName("BodyPanel");
+            card.SlideTo(0, TimeSpan.FromMilliseconds(200));
+            card.SetExpanded(true);
+            card.BeginEdit(false);
+            Assert.False(body.IsHitTestVisible);
+
+            WaitUntil(() => body.IsHitTestVisible);
+            Assert.Equal(0, card.RenderTransform.Value.OffsetX);
+            Assert.Equal(1, body.Opacity);
+            card.SlideTo(0);
+            Assert.True(body.IsHitTestVisible);
+
+            card.EndEdit(false);
+            card.SetExpanded(false);
+            Assert.False(body.IsHitTestVisible);
+        });
+    }
+
     [Theory]
     [InlineData(false, false)]
     [InlineData(false, true)]
@@ -32,6 +136,7 @@ public class CopyOnDragTextBoxTests
 
             Assert.Empty(box.Copies);
             Assert.True(box.IsSelecting);
+            box.ScreenPosition += new Vector(backwards ? -80 : 80, 0);
             RaiseMouseButton(box, Mouse.MouseUpEvent, MouseButton.Left);
 
             Assert.Equal(content.Substring(start, length), Assert.Single(box.Copies));
@@ -67,10 +172,11 @@ public class CopyOnDragTextBoxTests
             RaiseMouseButton(box, Mouse.MouseUpEvent, MouseButton.Left);
             RaiseMouseButton(box, Mouse.MouseDownEvent, MouseButton.Left);
             box.Select(0, 0);
+            box.ScreenPosition += new Vector(80, 0);
             RaiseMouseButton(box, Mouse.MouseUpEvent, MouseButton.Left);
 
             Assert.Empty(box.Copies);
-            Assert.Equal(2, clicks);
+            Assert.Equal(1, clicks);
         });
     }
 
@@ -82,6 +188,7 @@ public class CopyOnDragTextBoxTests
             var box = new RecordingTextBox { Text = "다시 선택할 본문", FailCopy = true };
             RaiseMouseButton(box, Mouse.MouseDownEvent, MouseButton.Left);
             box.Select(0, 2);
+            box.ScreenPosition += new Vector(80, 0);
             RaiseMouseButton(box, Mouse.MouseUpEvent, MouseButton.Left);
             Assert.Empty(box.Copies);
             Assert.Equal(Strings.Get("SelectionCopyFailed"), Notice(box).Content);
@@ -89,6 +196,7 @@ public class CopyOnDragTextBoxTests
             box.FailCopy = false;
             RaiseMouseButton(box, Mouse.MouseDownEvent, MouseButton.Left);
             box.Select(3, 3);
+            box.ScreenPosition += new Vector(80, 0);
             RaiseMouseButton(box, Mouse.MouseUpEvent, MouseButton.Left);
             Assert.Equal("선택할", Assert.Single(box.Copies));
             Assert.Equal(Strings.Get("SelectionCopied"), Notice(box).Content);
@@ -165,6 +273,21 @@ public class CopyOnDragTextBoxTests
     private static ToolTip Notice(CopyOnDragTextBox box) =>
         (ToolTip)typeof(CopyOnDragTextBox).GetField("_copyNotice", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(box)!;
 
+    private static void WaitUntil(Func<bool> condition)
+    {
+        var elapsed = Stopwatch.StartNew();
+        var frame = new DispatcherFrame();
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(10) };
+        timer.Tick += (_, _) =>
+        {
+            if (condition() || elapsed.Elapsed > TimeSpan.FromSeconds(3)) frame.Continue = false;
+        };
+        timer.Start();
+        try { Dispatcher.PushFrame(frame); }
+        finally { timer.Stop(); }
+        Assert.True(condition(), "카드 애니메이션 완료 후 본문 입력이 활성화되어야 함");
+    }
+
     private static void RaiseMouseButton(UIElement element, RoutedEvent routedEvent, MouseButton button) =>
         element.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, button)
         {
@@ -177,6 +300,9 @@ public class CopyOnDragTextBoxTests
     {
         public List<string> Copies { get; } = [];
         public bool FailCopy { get; set; }
+        public Point ScreenPosition { get; set; } = new(100, 100);
+
+        protected override Point GetScreenPosition(MouseEventArgs e) => ScreenPosition;
 
         protected override void WriteClipboardText(string text)
         {

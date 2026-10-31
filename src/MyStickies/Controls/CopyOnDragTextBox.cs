@@ -13,6 +13,9 @@ namespace MyStickies.Controls;
 public class CopyOnDragTextBox : TextBox
 {
     private (int Start, int Length)? _selectionOnPress;
+    private Point _pressScreenPosition;
+    private Vector _dragThreshold;
+    private bool _hasDragged;
     private ToolTip? _copyNotice;
     private readonly DispatcherTimer _noticeTimer = new() { Interval = TimeSpan.FromSeconds(1.8) };
 
@@ -24,6 +27,7 @@ public class CopyOnDragTextBox : TextBox
         // TextBox가 처리한 이벤트도 받아 기본 선택 처리가 끝난 뒤 범위를 확인함
         AddHandler(Mouse.MouseDownEvent, new MouseButtonEventHandler(Text_MouseDown), true);
         AddHandler(Mouse.MouseUpEvent, new MouseButtonEventHandler(Text_MouseUp), true);
+        AddHandler(Mouse.PreviewMouseMoveEvent, new MouseEventHandler(Text_PreviewMouseMove), true);
         _noticeTimer.Tick += (_, _) => HideCopyNotice();
         Unloaded += (_, _) => ResetInteraction();
         IsVisibleChanged += (_, _) =>
@@ -43,16 +47,31 @@ public class CopyOnDragTextBox : TextBox
         }
 
         HideCopyNotice();
+        _pressScreenPosition = GetScreenPosition(e);
+        var dpi = VisualTreeHelper.GetDpi(this);
+        _dragThreshold = new Vector(SystemParameters.MinimumHorizontalDragDistance * dpi.DpiScaleX,
+            SystemParameters.MinimumVerticalDragDistance * dpi.DpiScaleY);
+        _hasDragged = false;
         _selectionOnPress = (SelectionStart, SelectionLength);
+    }
+
+    private void Text_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        // 카드 이동으로 발생한 상대 좌표 변화가 기본 텍스트 선택으로 이어지지 않도록 함
+        if (_selectionOnPress.HasValue && !TrackDrag(e)) e.Handled = true;
     }
 
     private void Text_MouseUp(object sender, MouseButtonEventArgs e)
     {
         if (e.ChangedButton != MouseButton.Left || _selectionOnPress is not { } initial) return;
+        var dragged = TrackDrag(e);
+        var selectionChanged = initial != (SelectionStart, SelectionLength);
         _selectionOnPress = null;
         e.Handled = true;
 
-        if (SelectionLength > 0 && initial != (SelectionStart, SelectionLength))
+        if (!dragged && selectionChanged) Select(initial.Start, initial.Length);
+
+        if (dragged && SelectionLength > 0 && selectionChanged)
         {
             try
             {
@@ -64,11 +83,23 @@ public class CopyOnDragTextBox : TextBox
                 ShowCopyNotice("SelectionCopyFailed", e.GetPosition(this));
             }
         }
-        else if (IsReadOnly && SelectionLength == 0)
+        else if (!dragged && IsReadOnly && SelectionLength == 0)
         {
             ReadClicked?.Invoke(this, e);
         }
     }
+
+    private bool TrackDrag(MouseEventArgs e)
+    {
+        var distance = GetScreenPosition(e) - _pressScreenPosition;
+        _hasDragged |= Math.Abs(distance.X) >= _dragThreshold.X || Math.Abs(distance.Y) >= _dragThreshold.Y;
+        return _hasDragged;
+    }
+
+    /// <summary>움직이는 카드의 상대 좌표 대신 DPI가 반영된 화면 좌표를 사용함</summary>
+    protected virtual Point GetScreenPosition(MouseEventArgs e) => PresentationSource.FromVisual(this) is null
+        ? e.GetPosition(null)
+        : PointToScreen(e.GetPosition(this));
 
     /// <summary>클립보드 경합 시 WPF의 재시도를 사용하고 앱 종료 후에도 문자열을 유지함</summary>
     protected virtual void WriteClipboardText(string text) => Clipboard.SetDataObject(text, true);
@@ -119,6 +150,7 @@ public class CopyOnDragTextBox : TextBox
     private void ResetInteraction()
     {
         _selectionOnPress = null;
+        _hasDragged = false;
         HideCopyNotice();
     }
 

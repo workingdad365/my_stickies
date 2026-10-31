@@ -47,8 +47,8 @@ public class StartupRegistrationTests
 public class AppInfoTests
 {
     [Fact]
-    public void Version_Is_1_0_13()
+    public void Version_Is_1_0_14()
     {
-        Assert.Equal("1.0.13", MyStickies.Data.AppInfo.Version);
+        Assert.Equal("1.0.14", MyStickies.Data.AppInfo.Version);
     }
 }

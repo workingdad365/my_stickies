@@ -82,6 +82,10 @@ public partial class NoteTab : UserControl
     public bool IsSelectingText => TitleText.IsSelecting || BodyText.IsSelecting
                                    || TitleBox.IsSelecting || BodyBox.IsSelecting;
     private bool _useWindowSize;
+    private bool _sliding;
+    private bool _expanding;
+    private int _slideVersion;
+    private int _expandVersion;
 
     /// <summary>편집 취소 시 되돌릴 색상</summary>
     private string _colorBeforeEdit = NotePalette.Blue;
@@ -201,10 +205,20 @@ public partial class NoteTab : UserControl
     /// <summary>카드를 지정 X 오프셋으로 슬라이드</summary>
     public void SlideTo(double x, TimeSpan? delay = null)
     {
+        if (!_sliding && Math.Abs(Translate.X - x) < 0.5) return;
+        var version = ++_slideVersion;
+        _sliding = true;
+        UpdateBodyHitTesting();
         var anim = new DoubleAnimation(x, SlideDuration)
         {
             EasingFunction = Ease,
             BeginTime = delay ?? TimeSpan.Zero,
+        };
+        anim.Completed += (_, _) =>
+        {
+            if (version != _slideVersion) return;
+            _sliding = false;
+            UpdateBodyHitTesting();
         };
         Translate.BeginAnimation(TranslateTransform.XProperty, anim);
     }
@@ -212,8 +226,11 @@ public partial class NoteTab : UserControl
     /// <summary>즉시 지정 X 오프셋으로 이동 (애니메이션 없음)</summary>
     public void JumpTo(double x)
     {
+        _slideVersion++;
+        _sliding = false;
         Translate.BeginAnimation(TranslateTransform.XProperty, null);
         Translate.X = x;
+        UpdateBodyHitTesting();
     }
 
     /// <summary>본문 표시 여부 전환. 높이와 본문 투명도 애니메이션</summary>
@@ -221,6 +238,9 @@ public partial class NoteTab : UserControl
     {
         if (IsExpanded == expanded) return;
         IsExpanded = expanded;
+        var version = ++_expandVersion;
+        _expanding = expanded;
+        UpdateBodyHitTesting();
         if (!expanded)
             DisarmDelete();
 
@@ -232,8 +252,17 @@ public partial class NoteTab : UserControl
         {
             BeginTime = expanded ? TimeSpan.FromMilliseconds(60) : TimeSpan.Zero,
         };
+        opacityAnim.Completed += (_, _) =>
+        {
+            if (version != _expandVersion) return;
+            _expanding = false;
+            UpdateBodyHitTesting();
+        };
         BodyPanel.BeginAnimation(OpacityProperty, opacityAnim);
     }
+
+    /// <summary>접히거나 펼쳐지는 본문에 북마크 클릭이 전달되지 않도록 함</summary>
+    private void UpdateBodyHitTesting() => BodyPanel.IsHitTestVisible = IsExpanded && !_sliding && !_expanding;
 
     /// <summary>현재 표시 중인 제목/본문(편집 중이면 입력칸)을 카드 폭으로 측정해 필요한 카드 높이 계산</summary>
     private double MeasureExpandedHeight()
